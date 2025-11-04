@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, cast
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
@@ -12,11 +12,21 @@ COMMON_INPUT_CLASSES = "form-control"
 COMMON_SELECT_CLASSES = "form-select"
 
 
+def _ensure_widget_attrs(field: forms.Field) -> Dict[str, Any]:
+    """Return a mutable attrs dict for the field's widget."""
+    widget = cast(forms.Widget, field.widget)
+    attrs = getattr(widget, "attrs", None)
+    if not isinstance(attrs, dict):
+        attrs = dict(attrs or {})
+    setattr(widget, "attrs", attrs)
+    return attrs
+
+
 class AccountingAuthenticationForm(AuthenticationForm):
     username = forms.CharField(
-        label="Електронна пошта або імʼя користувача",
+        label="Імʼя користувача",
         widget=forms.TextInput(
-            attrs={"autofocus": True, "placeholder": "name@example.com", "class": COMMON_INPUT_CLASSES}
+            attrs={"autofocus": True, "placeholder": "username", "class": COMMON_INPUT_CLASSES}
         ),
     )
     password = forms.CharField(
@@ -30,9 +40,10 @@ class AccountingAuthenticationForm(AuthenticationForm):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
-            css_class = field.widget.attrs.get("class", "")
+            attrs = _ensure_widget_attrs(field)
+            css_class = attrs.get("class", "")
             if self.errors.get(name):
-                field.widget.attrs["class"] = f"{css_class} is-invalid".strip()
+                attrs["class"] = f"{css_class} is-invalid".strip()
 
 
 class DateInput(forms.DateInput):
@@ -93,16 +104,21 @@ class PersonForm(forms.ModelForm):
             if field_name in self.Meta.widgets:
                 continue
             if isinstance(field.widget, forms.Select):
-                field.widget.attrs.setdefault("class", COMMON_SELECT_CLASSES)
+                attrs = _ensure_widget_attrs(field)
+                attrs.setdefault("class", COMMON_SELECT_CLASSES)
             else:
-                field.widget.attrs.setdefault("class", COMMON_INPUT_CLASSES)
+                attrs = _ensure_widget_attrs(field)
+                attrs.setdefault("class", COMMON_INPUT_CLASSES)
             if isinstance(field.widget, forms.TextInput):
-                field.widget.attrs.setdefault("autocomplete", "off")
+                attrs = _ensure_widget_attrs(field)
+                attrs.setdefault("autocomplete", "off")
         if self.is_bound:
             for name, field in self.fields.items():
-                if field.errors:
-                    css_class = field.widget.attrs.get("class", "")
-                    field.widget.attrs["class"] = f"{css_class} is-invalid".strip()
+                bound_field = self[name]
+                if bound_field.errors:
+                    attrs = _ensure_widget_attrs(field)
+                    css_class = attrs.get("class", "")
+                    attrs["class"] = f"{css_class} is-invalid".strip()
 
     def get_recommendation_payload(self) -> dict[str, Any]:
         cleaned_data = {name: self.cleaned_data.get(name) for name in self.Meta.fields}

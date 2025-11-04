@@ -19,13 +19,37 @@
             Створити запис
           </a>
         </li>
-        <li class="nav-item">
+        <li class="nav-item d-md-none">
           <a href="{% url 'logout' %}" class="nav-link text-white d-flex align-items-center">
             <i class="bi bi-box-arrow-left"></i>
             Вийти
           </a>
         </li>
       </ul>
+      {% if request.user.is_authenticated %}
+        <div class="mt-auto w-100 px-3 pb-3 pt-3 border-top border-secondary border-opacity-25">
+          <div class="dropup w-100">
+            <button class="btn btn-outline-light w-100 d-flex align-items-center justify-content-between" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="d-flex align-items-center gap-2">
+                <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-semibold text-uppercase" style="width: 32px; height: 32px;">
+                  {{ request.user.username|default_if_none:""|slice:":1"|upper }}
+                </span>
+                <span class="text-start">
+                  {{ request.user.get_full_name|default:request.user.username }}
+                </span>
+              </span>
+              <i class="bi bi-chevron-up"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark w-100 shadow">
+              <li><button type="button" class="dropdown-item">Новий проєкт</button></li>
+              <li><button type="button" class="dropdown-item">Налаштування</button></li>
+              <li><button type="button" class="dropdown-item">Профіль</button></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}">Вийти</a></li>
+            </ul>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 </aside>

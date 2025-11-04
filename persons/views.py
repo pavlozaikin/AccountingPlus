@@ -45,7 +45,6 @@ class RecommendationMixin:
             recommendations = [
                 "Додаткові рекомендації відсутні на основі введених даних."
             ]
-        messages.info(self.request, "Отримано рекомендації експертної системи")
         context = self.get_context_data(form=form, recommendations=recommendations)
         return self.render_to_response(context)
 
