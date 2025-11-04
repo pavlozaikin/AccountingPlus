@@ -1,0 +1,50 @@
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+  --bs-primary: #ffba00;
+  --bs-primary-rgb: 255, 186, 0;
+  --bs-body-bg: #eeece5;
+  --bs-tertiary-bg: #eeece5;
+}
+
+body {
+  background-color: var(--bs-body-bg);
+  padding: 0 !important;
+}
+
+.form-signin {
+  max-width: 360px;
+  padding: 1rem;
+}
+
+.btn-primary {
+  background-color: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+  color: #141414 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #e0a000 !important;
+  border-color: #e0a000 !important;
+  color: #141414 !important;
+}
+
+.btn-primary:active {
+  background-color: #c98f00 !important;
+  border-color: #c98f00 !important;
+  color: #141414 !important;
+}
+
+.form-floating > .form-control {
+  border-radius: 0.75rem;
+}
+
+.form-control:focus {
+  border-color: var(--bs-primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(255, 186, 0, 0.25) !important;
+}
+
+.form-floating label {
+  color: #141414;
+}

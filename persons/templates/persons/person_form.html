@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}{% if object %}Редагування запису{% else %}Створення запису{% endif %} — Облік+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom">
+  <h1 class="h2 mb-0">{% if object %}Відомості про призовника{% else %}Новий запис{% endif %}</h1>
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <button form="personForm" type="submit" name="submit_action" value="recommend" class="btn btn-primary d-flex align-items-center gap-2">
+      <i class="bi bi-file-earmark-check-fill"></i>
+      Отримати рекомендацію
+    </button>
+  </div>
+</div>
+<form id="personForm" method="post" novalidate>
+  {% csrf_token %}
+  <h3 class="h5 mt-2 mb-3">Облікові дані</h3>
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.last_name wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.first_name wrapper_class='col-md-6 mb-3' %}
+  </div>
+  {% include 'includes/form_field.html' with field=form.middle_name wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.birth_date wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.rnokpp wrapper_class='col-md-6 mb-3' %}
+  </div>
+  {% include 'includes/form_field.html' with field=form.address_registered wrapper_class='mb-3' %}
+  {% include 'includes/form_field.html' with field=form.address_actual wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.phone wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.email wrapper_class='col-md-6 mb-3' %}
+  </div>
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Призначення та звільнення</h3>
+  {% include 'includes/form_field.html' with field=form.position_name wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.appoint_order_date wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.dismiss_order_date wrapper_class='col-md-6 mb-3' %}
+  </div>
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Звання та спеціальність</h3>
+  {% include 'includes/form_field.html' with field=form.account_category wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.mil_rank wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.vos_code wrapper_class='col-md-6 mb-3' %}
+  </div>
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Військово-обліковий документ та ЄДРПВР</h3>
+  {% include 'includes/form_field.html' with field=form.tcksp wrapper_class='mb-3' %}
+  {% include 'includes/form_field.html' with field=form.edrpvr_number wrapper_class='mb-3' %}
+  {% include 'includes/form_field.html' with field=form.doc_type wrapper_class='mb-3' %}
+  {% include 'includes/form_field.html' with field=form.doc_series_number wrapper_class='mb-3' %}
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Паспорт громадянина України</h3>
+  {% include 'includes/form_field.html' with field=form.passport_series_number wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.passport_issued_by wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.passport_issued_date wrapper_class='col-md-6 mb-3' %}
+  </div>
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Відстрочка та бронювання</h3>
+  <h4 class="h6 mt-2 mb-3">Відстрочка</h4>
+  {% include 'includes/form_field.html' with field=form.deferral_until wrapper_class='mb-3' %}
+  {% include 'includes/form_field.html' with field=form.deferral_reason wrapper_class='mb-3' %}
+  <h4 class="h6 mt-4 mb-3">Бронювання</h4>
+  {% include 'includes/form_field.html' with field=form.booking_until wrapper_class='mb-3' %}
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Мобілізаційне розпорядження</h3>
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.mobil_order_date wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.unit_number wrapper_class='col-md-6 mb-3' %}
+  </div>
+
+  <hr class="my-4" />
+  <h3 class="h5 mt-2 mb-3">Повідомлення до ТЦК та СП</h3>
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.notif_appoint_date wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.notif_dismiss_date wrapper_class='col-md-6 mb-3' %}
+  </div>
+
+  <div class="btn-toolbar mt-4 mb-3" role="toolbar" aria-label="Група дій">
+    <div class="btn-group" role="group" aria-label="Керування записом">
+      <button type="submit" name="submit_action" value="save" class="btn btn-success d-flex align-items-center gap-2">
+        <i class="bi bi-check2-circle"></i>
+        Зберегти
+      </button>
+      {% if object %}
+        <a href="{%- url 'persons:person_delete' object.pk -%}" class="btn btn-danger d-flex align-items-center gap-2">
+          <i class="bi bi-trash3"></i>
+          Видалити
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% if recommendations %}
+  <div class="alert alert-info mt-4" role="status">
+    <h2 class="h5">Рекомендації експертної системи</h2>
+    <ul class="mb-0">
+      {% for recommendation in recommendations %}
+        <li>{{ recommendation }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+{% endblock %}
