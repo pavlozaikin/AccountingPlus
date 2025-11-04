@@ -1,5 +1,7 @@
 {% if wrapper_class %}<div class="{{ wrapper_class }}">{% endif %}
-  {% if field.label %}{{ field.label_tag(attrs={'class': 'form-label'}) }}{% endif %}
+  {% if field.label %}
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {% endif %}
   {{ field }}
   {% if field.help_text %}
     <div class="form-text">{{ field.help_text }}</div>

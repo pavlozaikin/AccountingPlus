@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from typing import List
 
+from .database import load_database_config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-accountingplus")
@@ -56,12 +58,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "accountingplus.wsgi.application"
 ASGI_APPLICATION = "accountingplus.asgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+DATABASES = load_database_config(BASE_DIR)
 
 AUTH_PASSWORD_VALIDATORS = [
     {

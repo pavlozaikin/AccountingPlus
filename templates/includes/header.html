@@ -1,13 +1,13 @@
 <header id="siteHeader" class="navbar sticky-top bg-dark flex-md-nowrap p-0 shadow">
   <div class="container-fluid justify-content-between">
-    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="{%- url 'persons:person_list' -%}">Облік+</a>
+    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="{% url 'persons:person_list' %}">Облік+</a>
     <div class="d-flex align-items-center gap-2 px-3">
       <button class="btn btn-outline-light d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-label="Меню">
         <i class="bi bi-list"></i>
       </button>
       {% if request.user.is_authenticated %}
         <span class="text-white small d-none d-sm-inline">{{ request.user.get_full_name|default:request.user.username }}</span>
-        <a class="btn btn-outline-light btn-sm" href="{%- url 'logout' -%}">
+        <a class="btn btn-outline-light btn-sm" href="{% url 'logout' %}">
           <i class="bi bi-box-arrow-right"></i>
           <span class="d-none d-sm-inline">Вийти</span>
         </a>
