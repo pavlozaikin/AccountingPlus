@@ -42,9 +42,23 @@
         width: 1.5rem;
         height: 100vh;
       }
+      /* Normalize icon alignment globally */
       .bi {
-        vertical-align: -0.125em;
+        vertical-align: middle !important;
+        display: inline-block;
+        line-height: 1;
         fill: currentColor;
+      }
+
+      /* Sidebar icon sizing & centering */
+      .sidebar .nav-link .bi {
+        font-size: 1.125rem; /* ~18px like on the screenshot */
+        flex-shrink: 0;
+      }
+
+      /* Button icons (table actions, toolbar, etc.) */
+      .btn .bi {
+        font-size: 1rem;
       }
       .nav-scroller {
         position: relative;
