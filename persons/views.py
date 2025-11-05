@@ -5,7 +5,7 @@ from typing import Any, Dict
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpRequest, HttpResponse
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .forms import PersonForm
@@ -61,7 +61,9 @@ class PersonCreateView(LoginRequiredMixin, SidebarContextMixin, RecommendationMi
     form_class = PersonForm
     template_name = "persons/person_form.html"
     sidebar_active = "create"
-    success_url = reverse_lazy("persons:person_list")
+
+    def get_success_url(self) -> str:
+        return reverse("persons:person_update", kwargs={"pk": self.object.pk})
 
 
 class PersonUpdateView(LoginRequiredMixin, SidebarContextMixin, RecommendationMixin, UpdateView):
@@ -69,7 +71,9 @@ class PersonUpdateView(LoginRequiredMixin, SidebarContextMixin, RecommendationMi
     form_class = PersonForm
     template_name = "persons/person_form.html"
     sidebar_active = "list"
-    success_url = reverse_lazy("persons:person_list")
+
+    def get_success_url(self) -> str:
+        return reverse("persons:person_update", kwargs={"pk": self.object.pk})
 
 
 class PersonDeleteView(LoginRequiredMixin, SidebarContextMixin, DeleteView):
