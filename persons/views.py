@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
 from .forms import PersonForm
 from .models import Person
@@ -109,7 +109,7 @@ class PersonCreateView(LoginRequiredMixin, SidebarContextMixin, RecommendationMi
     model = Person
     form_class = PersonForm
     template_name = "persons/person_form.html"
-    sidebar_active = "list"
+    sidebar_active = "create"
 
     def get_success_url(self) -> str:
         return reverse("persons:person_update", kwargs={"pk": self.object.pk})
