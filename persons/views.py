@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from math import ceil
 from typing import Any, Dict
 
 from django.contrib import messages
@@ -13,7 +12,7 @@ from django.views.generic import CreateView, DeleteView, ListView, TemplateView,
 from .forms import PersonForm
 from .models import Person
 from .recommendations import PersonRecommendationEngine, PersonData
-from .tcksp_choices import TCKSP_CHOICES
+from .tck_reference_data import count_tck_entries, get_tck_reference_data
 
 
 class SidebarContextMixin:
@@ -92,16 +91,9 @@ class TckReferenceView(LoginRequiredMixin, SidebarContextMixin, TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        entries = [label for value, label in TCKSP_CHOICES if value]
-        unique_entries = list(dict.fromkeys(entries))
-        column_count = 3
-        per_column = max(ceil(len(unique_entries) / column_count), 1)
-        columns = [
-            unique_entries[index : index + per_column]
-            for index in range(0, len(unique_entries), per_column)
-        ]
-        context["tck_columns"] = columns
-        context["tck_entries_total"] = len(unique_entries)
+        reference_data = get_tck_reference_data()
+        context["tck_regions"] = reference_data
+        context["tck_entries_total"] = count_tck_entries(reference_data)
         return context
 
 

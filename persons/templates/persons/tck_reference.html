@@ -1,23 +1,178 @@
 {% extends 'base.html' %}
 {% block title %}Довідник ТЦК — Облік+{% endblock %}
+{% block extra_css %}
+  {{ block.super }}
+  <style>
+    .tck-accordion {
+      border-radius: 1rem;
+      border: 1px solid rgba(20, 20, 20, 0.1);
+      overflow: hidden;
+      background-color: #fdfbf5;
+    }
+
+    .tck-accordion__item + .tck-accordion__item {
+      border-top: 1px solid rgba(20, 20, 20, 0.1);
+    }
+
+    .tck-accordion__summary {
+      list-style: none;
+      margin: 0;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .tck-accordion__summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .tck-accordion__summary::after {
+      content: "+";
+      font-size: 1.25rem;
+      line-height: 1;
+      font-weight: 400;
+    }
+
+    .tck-accordion__item[open] .tck-accordion__summary::after {
+      content: "−";
+    }
+
+    .tck-accordion__item[open] .tck-accordion__summary {
+      border-bottom: 1px solid rgba(20, 20, 20, 0.1);
+    }
+
+    .tck-accordion__body {
+      padding: 1.5rem 1.25rem 2rem;
+      background-color: #fffdf6;
+    }
+
+    .tck-entry + .tck-entry {
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(20, 20, 20, 0.08);
+    }
+
+    .tck-entry__title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+
+    .tck-entry__list {
+      margin: 0;
+    }
+
+    .tck-entry__list dt {
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .tck-entry__list dd {
+      margin-left: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .tck-entry__contacts {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+    }
+
+    .tck-entry__contacts a {
+      color: inherit;
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-decoration-color: rgba(20, 20, 20, 0.4);
+    }
+
+    .tck-entry__contacts a:hover,
+    .tck-entry__contacts a:focus {
+      text-decoration-color: currentColor;
+    }
+
+    @media (max-width: 575.98px) {
+      .tck-accordion__summary {
+        padding: 1rem;
+      }
+
+      .tck-accordion__body {
+        padding: 1.25rem 1rem 1.75rem;
+      }
+    }
+  </style>
+{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom">
   <h1 class="h2 mb-0">Довідник ТЦК</h1>
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-arrow-up-right"></i>
+        Джерело
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a
+            class="dropdown-item"
+            href="https://mod.gov.ua/vijskovij-oblik/teritorialni-czentri-komplektuvannya-ta-soczialnoyi-pidtrimki"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Перелік</a>
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            href="https://mod.gov.ua/diyalnist/normativno-pravova-baza/dovidnik-nomeriv-telefoniv-ta-imejliv-t-cz-k-ta-sp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Файл-довідник</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>
 <p class="text-muted">У переліку зібрано {{ tck_entries_total }} органів територіальних центрів комплектування та соціальної підтримки.</p>
-<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
-  {% for column in tck_columns %}
-    <div class="col d-flex">
-      <div class="card flex-fill shadow-sm border-0">
-        <div class="card-body py-3">
-          <ul class="list-unstyled mb-0 small">
-            {% for entry in column %}
-              <li class="py-2 {% if not forloop.last %}border-bottom border-light-subtle{% endif %}">{{ entry }}</li>
-            {% endfor %}
-          </ul>
-        </div>
+<div class="tck-accordion">
+  {% for region in tck_regions %}
+    <details class="tck-accordion__item">
+      <summary class="tck-accordion__summary">
+        <span>{{ region.name }}</span>
+      </summary>
+      <div class="tck-accordion__body">
+        {% for entry in region.entries %}
+          <article class="tck-entry">
+            <h2 class="tck-entry__title">{{ entry.title }}</h2>
+            {% if entry.sections %}
+              <dl class="tck-entry__list">
+                {% for section in entry.sections %}
+                  <dt>{{ section.title }}</dt>
+                  <dd>
+                    {% if section.items %}
+                      <ul class="tck-entry__contacts">
+                        {% for contact in section.items %}
+                          <li>
+                            <a href="{{ contact.href }}">{{ contact.text }}</a>
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {% else %}
+                      —
+                    {% endif %}
+                  </dd>
+                {% endfor %}
+              </dl>
+            {% endif %}
+          </article>
+        {% endfor %}
       </div>
-    </div>
+    </details>
   {% endfor %}
 </div>
 {% endblock %}
