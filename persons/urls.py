@@ -7,6 +7,7 @@ from . import views
 app_name = "persons"
 
 urlpatterns = [
+    path("settings/", views.AccountSettingsView.as_view(), name="settings"),
     path("", views.PersonListView.as_view(), name="person_list"),
     path("tck-reference/", views.TckReferenceView.as_view(), name="tck_reference"),
     path("persons/create/", views.PersonCreateView.as_view(), name="person_create"),

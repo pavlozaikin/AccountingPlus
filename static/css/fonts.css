@@ -1,0 +1,104 @@
+@import url("https://fonts.cdnfonts.com/css/e-ukraine");
+@import url("https://fonts.cdnfonts.com/css/e-ukraine-head");
+
+:root {
+  --bs-body-font-family: "e-Ukraine", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --app-heading-font-family: "e-Ukraine Head", var(--bs-body-font-family);
+}
+
+body {
+  font-family: var(--bs-body-font-family);
+}
+
+main {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 300;
+  text-align: left;
+}
+
+main h1,
+main h2,
+main h3,
+main h4,
+main h5,
+main h6 {
+  font-family: var(--app-heading-font-family);
+  font-weight: 400 !important;
+  text-transform: none;
+}
+
+main h1 {
+  font-size: 56px !important;
+  line-height: 60px !important;
+}
+
+main h2 {
+  font-size: 38px !important;
+  line-height: 40px !important;
+}
+
+main h3 {
+  font-size: 28px !important;
+  line-height: 32px !important;
+}
+
+main h4 {
+  font-size: 24px !important;
+  line-height: 28px !important;
+}
+
+main h5 {
+  font-size: 20px !important;
+  line-height: 24px !important;
+}
+
+main h6 {
+  font-size: 18px !important;
+  line-height: 28px !important;
+}
+
+main .heading-h7,
+main .h7 {
+  font-family: var(--app-heading-font-family);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+
+main p,
+main li,
+main dd,
+main dt,
+main th,
+main td {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 300;
+  text-align: left;
+}
+
+main th {
+  font-weight: 400;
+}
+
+main small,
+main .small,
+main .form-text,
+main .text-body-secondary {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+main a:not(.btn):not(.dropdown-item):not(.page-link):not(.nav-link) {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.brand-logotype {
+  font-family: var(--app-heading-font-family);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}

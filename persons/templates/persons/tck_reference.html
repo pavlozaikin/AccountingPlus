@@ -46,6 +46,12 @@
     }
 
     .tck-accordion__body {
+      overflow: hidden;
+      height: 0;
+      opacity: 0;
+    }
+
+    .tck-accordion__panel {
       padding: 1.5rem 1.25rem 2rem;
       background-color: #fffdf6;
     }
@@ -97,12 +103,17 @@
       text-decoration-color: currentColor;
     }
 
+    .tck-accordion__item[open] .tck-accordion__body {
+      height: auto;
+      opacity: 1;
+    }
+
     @media (max-width: 575.98px) {
       .tck-accordion__summary {
         padding: 1rem;
       }
 
-      .tck-accordion__body {
+      .tck-accordion__panel {
         padding: 1.25rem 1rem 1.75rem;
       }
     }
@@ -111,7 +122,7 @@
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom">
   <h1 class="h2 mb-0">Довідник ТЦК</h1>
-  <div class="btn-toolbar mb-2 mb-md-0">
+  <div class="btn-toolbar heading-toolbar mb-2 mb-md-0">
     <div class="btn-group">
       <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="bi bi-arrow-up-right"></i>
@@ -141,38 +152,146 @@
 <p class="text-muted">У переліку зібрано {{ tck_entries_total }} органів територіальних центрів комплектування та соціальної підтримки.</p>
 <div class="tck-accordion">
   {% for region in tck_regions %}
-    <details class="tck-accordion__item" {% if forloop.first %}open{% endif %}>
+    <details class="tck-accordion__item">
       <summary class="tck-accordion__summary">
         <span>{{ region.name }}</span>
       </summary>
       <div class="tck-accordion__body">
-        {% for entry in region.entries %}
-          <article class="tck-entry">
-            <h2 class="tck-entry__title">{{ entry.title }}</h2>
-            {% if entry.sections %}
-              <dl class="tck-entry__list">
-                {% for section in entry.sections %}
-                  <dt>{{ section.title }}</dt>
-                  <dd>
-                    {% if section.items %}
-                      <ul class="tck-entry__contacts">
-                        {% for contact in section.items %}
-                          <li>
-                            <a href="{{ contact.href }}">{{ contact.text }}</a>
-                          </li>
-                        {% endfor %}
-                      </ul>
-                    {% else %}
-                      —
-                    {% endif %}
-                  </dd>
-                {% endfor %}
-              </dl>
-            {% endif %}
-          </article>
-        {% endfor %}
+        <div class="tck-accordion__panel">
+          {% for entry in region.entries %}
+            <article class="tck-entry">
+              <h2 class="tck-entry__title">{{ entry.title }}</h2>
+              {% if entry.sections %}
+                <dl class="tck-entry__list">
+                  {% for section in entry.sections %}
+                    <dt>{{ section.title }}</dt>
+                    <dd>
+                      {% if section.items %}
+                        <ul class="tck-entry__contacts">
+                          {% for contact in section.items %}
+                            <li>
+                              <a href="{{ contact.href }}">{{ contact.text }}</a>
+                            </li>
+                          {% endfor %}
+                        </ul>
+                      {% else %}
+                        —
+                      {% endif %}
+                    </dd>
+                  {% endfor %}
+                </dl>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
       </div>
     </details>
   {% endfor %}
 </div>
+{% endblock %}
+{% block extra_js %}
+  {{ block.super }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+
+      var accordionItems = document.querySelectorAll('.tck-accordion__item');
+
+      accordionItems.forEach(function (details) {
+        var summary = details.querySelector('.tck-accordion__summary');
+        var body = details.querySelector('.tck-accordion__body');
+
+        if (!summary || !body) {
+          return;
+        }
+
+        var isAnimating = false;
+
+        body.style.overflow = 'hidden';
+
+        if (!details.open) {
+          body.style.height = '0px';
+          body.style.opacity = '0';
+        } else {
+          body.style.height = 'auto';
+          body.style.opacity = '1';
+        }
+
+        summary.addEventListener('click', function (event) {
+          event.preventDefault();
+
+          if (isAnimating) {
+            return;
+          }
+
+          if (details.open) {
+            collapse(details, body);
+          } else {
+            expand(details, body);
+          }
+        });
+
+        function expand(detailsElement, bodyElement) {
+          isAnimating = true;
+          detailsElement.setAttribute('open', '');
+
+          var startHeight = bodyElement.offsetHeight;
+          var endHeight = bodyElement.scrollHeight;
+
+          bodyElement.style.height = startHeight + 'px';
+          bodyElement.style.opacity = '0';
+          bodyElement.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+
+          requestAnimationFrame(function () {
+            bodyElement.style.height = endHeight + 'px';
+            bodyElement.style.opacity = '1';
+          });
+
+          bodyElement.addEventListener(
+            'transitionend',
+            function handler(event) {
+              if (event.propertyName === 'height') {
+                bodyElement.style.height = 'auto';
+                bodyElement.style.opacity = '1';
+                bodyElement.style.removeProperty('transition');
+                isAnimating = false;
+              }
+            },
+            { once: true }
+          );
+        }
+
+        function collapse(detailsElement, bodyElement) {
+          isAnimating = true;
+
+          var startHeight = bodyElement.scrollHeight;
+
+          bodyElement.style.height = startHeight + 'px';
+          bodyElement.style.opacity = '1';
+          bodyElement.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+
+          requestAnimationFrame(function () {
+            bodyElement.style.height = '0px';
+            bodyElement.style.opacity = '0';
+          });
+
+          bodyElement.addEventListener(
+            'transitionend',
+            function handler(event) {
+              if (event.propertyName === 'height') {
+                detailsElement.removeAttribute('open');
+                bodyElement.style.height = '0px';
+                bodyElement.style.opacity = '0';
+                bodyElement.style.removeProperty('transition');
+                isAnimating = false;
+              }
+            },
+            { once: true }
+          );
+        }
+      });
+    });
+  </script>
 {% endblock %}

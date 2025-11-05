@@ -1,0 +1,7 @@
+<input
+  type="{{ widget.type }}"
+  name="{{ widget.name }}"
+  {% include "django/forms/widgets/attrs.html" %}
+/>
+<datalist id="{{ widget.datalist_id }}"></datalist>
+{{ widget.options|json_script:widget.options_data_id }}

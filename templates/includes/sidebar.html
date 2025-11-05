@@ -1,8 +1,8 @@
 <aside class="sidebar col-md-3 col-lg-2 p-0">
-  <div class="offcanvas-md offcanvas-end" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+  <div class="offcanvas-md offcanvas-end bg-dark text-white" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" data-bs-scroll="true">
     <div class="offcanvas-header d-md-none">
-      <h5 class="offcanvas-title" id="sidebarMenuLabel">Облік+</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Закрити"></button>
+      <h5 class="offcanvas-title" id="sidebarMenuLabel">Облік<span class="text-primary">+</span></h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Закрити"></button>
     </div>
     <div class="offcanvas-body d-flex flex-column h-100 p-0 pt-lg-3 overflow-y-auto">
       <hr class="mx-3 my-3 border-secondary opacity-25" />
@@ -13,26 +13,38 @@
             Загальний список
           </a>
         </li>
+        <li class="nav-item px-3">
+          <hr class="border-secondary opacity-25 my-2" />
+        </li>
+        <li class="nav-item px-3">
+          <span class="text-secondary text-uppercase small fw-semibold">Довідково</span>
+        </li>
+        <li class="nav-item">
+          <a href="https://zakon.rada.gov.ua/laws/show/1487-2022-%D0%BF#n382" class="nav-link text-white d-flex align-items-center" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-file-earmark-text"></i>
+            Порядок військ. обліку
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="https://zakon.rada.gov.ua/laws/show/1332-2024-%D0%BF#Text" class="nav-link text-white d-flex align-items-center" target="_blank" rel="noopener noreferrer">
+            <i class="bi bi-file-earmark-text"></i>
+            Порядок бронювання
+          </a>
+        </li>
         <li class="nav-item">
           <a href="{% url 'persons:tck_reference' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'tck_reference' %}active{% else %}text-white{% endif %}" {% if sidebar_active == 'tck_reference' %}aria-current="page"{% endif %}>
             <i class="bi bi-files"></i>
             Довідник ТЦК
           </a>
         </li>
-        <li class="nav-item d-md-none">
-          <a href="{% url 'logout' %}" class="nav-link text-white d-flex align-items-center">
-            <i class="bi bi-box-arrow-left"></i>
-            Вийти
-          </a>
-        </li>
       </ul>
       {% if request.user.is_authenticated %}
-        <div class="mt-auto w-100 px-3 pb-3 pt-3 border-top border-secondary border-opacity-25">
+        <div class="sidebar-user-menu mt-auto w-100 px-3 pb-3 pt-3 border-top border-secondary border-opacity-25">
           <div class="dropup w-100">
             <button class="btn btn-outline-light w-100 d-flex align-items-center justify-content-between" type="button" data-bs-toggle="dropdown" aria-expanded="false">
               <span class="d-flex align-items-center gap-2">
-                <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-semibold text-uppercase" style="width: 32px; height: 32px;">
-                  {{ request.user.username|default_if_none:""|slice:":1"|upper }}
+                <span class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center fw-semibold" style="width: 32px; height: 32px;">
+                  {{ request.user.username|default_if_none:""|slice:":1" }}
                 </span>
                 <span class="text-start">
                   {{ request.user.get_full_name|default:request.user.username }}
@@ -41,9 +53,7 @@
               <i class="bi bi-chevron-up"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark w-100 shadow">
-              <li><button type="button" class="dropdown-item">Новий проєкт</button></li>
-              <li><button type="button" class="dropdown-item">Налаштування</button></li>
-              <li><button type="button" class="dropdown-item">Профіль</button></li>
+              <li><a class="dropdown-item" href="{% url 'persons:settings' %}">Налаштування</a></li>
               <li><hr class="dropdown-divider" /></li>
               <li><a class="dropdown-item" href="{% url 'logout' %}">Вийти</a></li>
             </ul>

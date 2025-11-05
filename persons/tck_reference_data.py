@@ -4,7 +4,7 @@ import re
 from collections import OrderedDict
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Iterable, List, MutableMapping, Optional
+from typing import Dict, Iterable, List, MutableMapping, Optional, Set
 
 from django.conf import settings
 
@@ -40,6 +40,8 @@ OBLAST_FROM_HEADING: Dict[str, str] = {
     "Харківський ОТЦК та СП": "Харківська область",
     "Запорізький ОТЦК та СП": "Запорізька область",
 }
+
+EXCLUDED_TCK_NAMES: Set[str] = {"Вінницький обʼєднаний міський ТЦК та СП"}
 
 
 def _strip_contact_value(value: str) -> str:
@@ -144,3 +146,19 @@ def count_tck_entries(regions: Iterable[Dict[str, object]]) -> int:
 
     return sum(len(region.get("entries", [])) for region in regions)
 
+
+@lru_cache(maxsize=1)
+def get_tck_names() -> List[str]:
+    """Return the ordered list of unique ТЦК назв sourced from the data file."""
+
+    regions = get_tck_reference_data()
+    seen: Set[str] = set()
+    names: List[str] = []
+    for region in regions:
+        for entry in region.get("entries", []):
+            title = str(entry.get("title") or "").strip()
+            if not title or title in seen or title in EXCLUDED_TCK_NAMES:
+                continue
+            seen.add(title)
+            names.append(title)
+    return names

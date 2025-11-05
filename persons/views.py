@@ -8,8 +8,9 @@ from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView
+from django.contrib.auth.views import PasswordChangeView
 
-from .forms import PersonForm
+from .forms import PersonForm, AccountPasswordChangeForm
 from .models import Person
 from .recommendations import PersonRecommendationEngine, PersonData
 from .tck_reference_data import count_tck_entries, get_tck_reference_data
@@ -127,3 +128,13 @@ class PersonDeleteView(LoginRequiredMixin, SidebarContextMixin, DeleteView):
     def delete(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         messages.success(request, "Запис успішно видалено")
         return super().delete(request, *args, **kwargs)
+
+
+class AccountSettingsView(LoginRequiredMixin, SidebarContextMixin, PasswordChangeView):
+    template_name = "persons/settings.html"
+    form_class = AccountPasswordChangeForm
+    success_url = reverse_lazy("persons:settings")
+
+    def form_valid(self, form: AccountPasswordChangeForm) -> HttpResponse:
+        messages.success(self.request, "Пароль успішно змінено")
+        return super().form_valid(form)
