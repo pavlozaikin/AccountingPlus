@@ -15,7 +15,7 @@ class Person(models.Model):
     first_name = models.CharField("Імʼя", max_length=150)
     middle_name = models.CharField("По батькові", max_length=150, blank=True)
     birth_date = models.DateField("Дата народження", blank=True, null=True)
-    rnokpp = models.CharField("РНОКПП", max_length=20, blank=True)
+    rnokpp = models.CharField("РНОКПП", max_length=10, blank=True)
     address_registered = models.CharField(
         "Адреса задекларованого/зареєстрованого місця проживання",
         max_length=255,
@@ -48,7 +48,7 @@ class Person(models.Model):
         default="призовник",
     )
     mil_rank = models.CharField("Військове звання", max_length=100, blank=True)
-    vos_code = models.CharField("Цифрове позначення ВОС", max_length=50, blank=True)
+    vos_code = models.CharField("Цифрове позначення ВОС", max_length=6, blank=True)
 
     tcksp = models.CharField("ТЦК та СП", max_length=150, blank=True)
     edrpvr_number = models.CharField("Номер у ЄДРПВР", max_length=100, blank=True)

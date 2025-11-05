@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict, cast
+from typing import Any, Dict, List, cast
 
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
+from django.utils.formats import get_format
 
 from .models import Person
 
@@ -42,12 +43,29 @@ class AccountingAuthenticationForm(AuthenticationForm):
         for name, field in self.fields.items():
             attrs = _ensure_widget_attrs(field)
             css_class = attrs.get("class", "")
-            if self.errors.get(name):
+            errors = self.errors
+            if errors and errors.get(name):
                 attrs["class"] = f"{css_class} is-invalid".strip()
+
+
+DATE_INPUT_FORMAT = "%Y-%m-%d"
 
 
 class DateInput(forms.DateInput):
     input_type = "date"
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        kwargs.setdefault("format", DATE_INPUT_FORMAT)
+        super().__init__(*args, **kwargs)
+
+
+def _get_date_input_formats() -> List[str]:
+    formats: List[str] = [DATE_INPUT_FORMAT]
+    for fmt in get_format("DATE_INPUT_FORMATS"):
+        fmt_str = str(fmt)
+        if fmt_str not in formats:
+            formats.append(fmt_str)
+    return formats
 
 
 class PersonForm(forms.ModelForm):
@@ -100,7 +118,10 @@ class PersonForm(forms.ModelForm):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        date_input_formats = _get_date_input_formats()
         for field_name, field in self.fields.items():
+            if isinstance(field, forms.DateField):
+                field.input_formats = list(date_input_formats)
             if field_name in self.Meta.widgets:
                 continue
             if isinstance(field.widget, forms.Select):
