@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Sequence
 
 try:
     from experta import AS, MATCH, Fact, KnowledgeEngine, Rule
@@ -79,6 +79,16 @@ class PersonRecommendationEngine(KnowledgeEngine):
             # Handle leap day by falling back to February 28 of the target year.
             return base.replace(month=2, day=28, year=base.year + years)
 
+    def _has_value(self, value: Any) -> bool:
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return bool(value.strip())
+        return True
+
+    def _all_fields_present(self, fact: Fact, fields: Sequence[str]) -> bool:
+        return all(self._has_value(fact.get(field)) for field in fields)
+
     def _format_date(self, value: Any) -> Optional[str]:
         parsed = self._parse_date(value)
         if parsed:
@@ -86,6 +96,13 @@ class PersonRecommendationEngine(KnowledgeEngine):
         if isinstance(value, str) and value:
             return value
         return None
+
+    @Rule(PersonData(birth_date=MATCH.birth_date))
+    def recommend_below_service_age(self, birth_date: Any) -> None:  # type: ignore[override]
+        age = self._calculate_age(birth_date)
+        if age is None or age >= 16:
+            return
+        self._recommendations.append("Особа не досягла віку перебування на військовому обліку")
 
     @Rule(
         PersonData(
@@ -122,8 +139,105 @@ class PersonRecommendationEngine(KnowledgeEngine):
         if age is None or age <= 60:
             return
         self._recommendations.append(
-            f"{first_name} {last_name} має бути виключений з військового обліку у звʼязку з досягненням граничного віку"
+            f"{account_category} {first_name} {last_name} має бути виключений з військового обліку у звʼязку з досягненням граничного віку"
         )
+
+    @Rule(
+        PersonData(
+            account_category=MATCH.account_category,
+            mobil_order_date=MATCH.mobil_order_date,
+        )
+    )
+    def recommend_prizovnik_with_mobil_order(
+        self, account_category: str, mobil_order_date: Any
+    ) -> None:  # type: ignore[override]
+        if account_category != "призовник":
+            return
+        if not self._has_value(mobil_order_date):
+            return
+        self._recommendations.append(
+            "Призовник не може мати мобілізаційне розпорядження. Скоригуйте категорію обліку"
+        )
+
+    @Rule(
+        PersonData(
+            account_category=MATCH.account_category,
+            mil_rank=MATCH.mil_rank,
+        )
+    )
+    def recommend_prizovnik_has_rank(self, account_category: str, mil_rank: Optional[str]) -> None:  # type: ignore[override]
+        if account_category != "призовник":
+            return
+        if not self._has_value(mil_rank):
+            return
+        self._recommendations.append("Військові звання призовникам не присвоюються")
+
+    @Rule(
+        PersonData(
+            account_category=MATCH.account_category,
+            vos_code=MATCH.vos_code,
+        )
+    )
+    def recommend_prizovnik_has_vos(self, account_category: str, vos_code: Optional[str]) -> None:  # type: ignore[override]
+        if account_category != "призовник":
+            return
+        if not self._has_value(vos_code):
+            return
+        self._recommendations.append("Призовники не можуть мати військово-облікову спеціальність")
+
+    @Rule(
+        PersonData(
+            account_category=MATCH.account_category,
+            mil_rank=MATCH.mil_rank,
+        )
+    )
+    def recommend_missing_rank_for_obliged(
+        self, account_category: str, mil_rank: Optional[str]
+    ) -> None:  # type: ignore[override]
+        if account_category != "військовозобовʼязаний":
+            return
+        if self._has_value(mil_rank):
+            return
+        self._recommendations.append(
+            "Переконайтесь, що військове звання (принаймні рекрут) відсутнє у військово-обліковому документі"
+        )
+
+    @Rule(
+        PersonData(
+            account_category=MATCH.account_category,
+            mil_rank=MATCH.mil_rank,
+        )
+    )
+    def recommend_missing_rank_for_reservist(
+        self, account_category: str, mil_rank: Optional[str]
+    ) -> None:  # type: ignore[override]
+        if account_category != "резервіст":
+            return
+        if self._has_value(mil_rank):
+            return
+        self._recommendations.append(
+            "Перевірте військово-обліковий документ на відсутність записів про присвоєння військового звання"
+        )
+
+    @Rule(PersonData(email=MATCH.email))
+    def recommend_unsafe_email(self, email: str) -> None:  # type: ignore[override]
+        if not self._has_value(email):
+            return
+        domain = email.lower().strip().split("@")[-1]
+        banned_domains = {
+            "mail.ru",
+            "list.ru",
+            "bk.ru",
+            "inbox.ru",
+            "yandex.ru",
+            "yandex.com",
+            "ya.ru",
+            "rambler.ru",
+        }
+        if domain in banned_domains:
+            self._recommendations.append(
+                "Використовується email-сервіс держави-агресора. Негайно змініть email!"
+            )
 
     @Rule(
         PersonData(
@@ -148,6 +262,40 @@ class PersonRecommendationEngine(KnowledgeEngine):
         self._recommendations.append(
             f"{first_name} {last_name} може не включатися до списку на бронювання до {deferral_text}, адже має відстрочку ({deferral_reason})"
         )
+
+    @Rule(PersonData(deferral_until=MATCH.deferral_until))
+    def recommend_expired_deferral(self, deferral_until: Any) -> None:  # type: ignore[override]
+        expiry = self._parse_date(deferral_until)
+        if not expiry:
+            return
+        if date.today() <= expiry:
+            return
+        self._recommendations.append("Строк дії відстрочки сплив. Оновіть про неї дані")
+
+    @Rule(PersonData(booking_until=MATCH.booking_until))
+    def recommend_expired_booking(self, booking_until: Any) -> None:  # type: ignore[override]
+        expiry = self._parse_date(booking_until)
+        if not expiry:
+            return
+        if date.today() <= expiry:
+            return
+        self._recommendations.append("Строк дії бронювання сплив. Оновіть про нього дані")
+
+    @Rule(
+        PersonData(
+            account_category=MATCH.account_category,
+            position_name=MATCH.position_name,
+            appoint_order_date=MATCH.appoint_order_date,
+        )
+    )
+    def recommend_missing_position_for_appointment(
+        self, account_category: str, position_name: Optional[str], appoint_order_date: Any
+    ) -> None:  # type: ignore[override]
+        if not self._has_value(appoint_order_date):
+            return
+        if self._has_value(position_name):
+            return
+        self._recommendations.append(f"Вкажіть на яку посаду призначено {account_category}")
 
     @Rule(
         AS.person_fact
@@ -211,6 +359,61 @@ class PersonRecommendationEngine(KnowledgeEngine):
         deadline_text = self._format_date(deadline) or str(deadline)
         self._recommendations.append(
             f"Повідомлення про звільнення {first_name} {last_name} з посади необхідно було подати до {deadline_text}"
+        )
+
+    @Rule(
+        PersonData(
+            birth_date=MATCH.birth_date,
+            mobil_order_date=MATCH.mobil_order_date,
+        )
+    )
+    def recommend_mobil_order_underage(
+        self, birth_date: Any, mobil_order_date: Any
+    ) -> None:  # type: ignore[override]
+        birth = self._parse_date(birth_date)
+        mobil = self._parse_date(mobil_order_date)
+        if not birth or not mobil:
+            return
+        eighteenth = self._add_years(birth, 18)
+        if not eighteenth:
+            return
+        if mobil < eighteenth:
+            self._recommendations.append(
+                "Мобілізаційне розпорядження не може бути видано неповнолітній особі"
+            )
+
+    @Rule(
+        PersonData(
+            mobil_order_date=MATCH.mobil_order_date,
+            unit_number=MATCH.unit_number,
+        )
+    )
+    def recommend_missing_unit_number(
+        self, mobil_order_date: Any, unit_number: Optional[str]
+    ) -> None:  # type: ignore[override]
+        if not self._has_value(mobil_order_date):
+            return
+        if self._has_value(unit_number):
+            return
+        self._recommendations.append(
+            "Не вказано номер військової частини у мобілізаційному розпорядженні"
+        )
+
+    @Rule(
+        PersonData(
+            mobil_order_date=MATCH.mobil_order_date,
+            unit_number=MATCH.unit_number,
+        )
+    )
+    def recommend_missing_mobil_order_date(
+        self, mobil_order_date: Any, unit_number: Optional[str]
+    ) -> None:  # type: ignore[override]
+        if self._has_value(mobil_order_date):
+            return
+        if not self._has_value(unit_number):
+            return
+        self._recommendations.append(
+            "Не вказано дату видачі мобілізаційного розпорядження"
         )
 
     @Rule(PersonData(birth_date=MATCH.birth_date))
