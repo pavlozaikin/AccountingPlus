@@ -1,8 +1,25 @@
 {% extends 'base.html' %}
 {% block title %}{% if object %}Редагування запису{% else %}Створення запису{% endif %} — Облік+{% endblock %}
+{% block messages %}{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom">
-  <h1 class="h2 mb-0">{% if object %}Відомості про призовника{% else %}Новий запис{% endif %}</h1>
+  <h1 class="h2 mb-0">
+    {% if object %}
+      {% with category=object.account_category %}
+        {% if category == 'призовник' %}
+          Відомості про призовника
+        {% elif category == 'військовозобовʼязаний' %}
+          Відомості про військовозобовʼязаного
+        {% elif category == 'резервіст' %}
+          Відомості про резервіста
+        {% else %}
+          Відомості про призовника
+        {% endif %}
+      {% endwith %}
+    {% else %}
+      Новий запис
+    {% endif %}
+  </h1>
   <div class="btn-toolbar mb-2 mb-md-0">
     <button form="personForm" type="submit" name="submit_action" value="recommend" class="btn btn-primary d-flex align-items-center gap-2">
       <i class="bi bi-file-earmark-check-fill"></i>
@@ -12,10 +29,11 @@
 </div>
 <form id="personForm" method="post" novalidate>
   {% csrf_token %}
+  {% include 'includes/messages.html' %}
   {% if recommendations %}
     <hr class="my-4" />
     <div class="alert alert-info mb-4" role="status">
-      <h2 class="h5">Рекомендації експертної системи</h2>
+      <h2 class="h5">Рекомендації з військового обліку</h2>
       <ul class="mb-0">
         {% for recommendation in recommendations %}
           <li>{{ recommendation }}</li>

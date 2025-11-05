@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Довідник ТЦК — Облік+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom">
+  <h1 class="h2 mb-0">Довідник ТЦК</h1>
+</div>
+<p class="text-muted">У переліку зібрано {{ tck_entries_total }} органів територіальних центрів комплектування та соціальної підтримки.</p>
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+  {% for column in tck_columns %}
+    <div class="col d-flex">
+      <div class="card flex-fill shadow-sm border-0">
+        <div class="card-body py-3">
+          <ul class="list-unstyled mb-0 small">
+            {% for entry in column %}
+              <li class="py-2 {% if not forloop.last %}border-bottom border-light-subtle{% endif %}">{{ entry }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

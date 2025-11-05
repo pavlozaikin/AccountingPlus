@@ -4,9 +4,9 @@
       <h5 class="offcanvas-title" id="sidebarMenuLabel">Облік+</h5>
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Закрити"></button>
     </div>
-    <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+    <div class="offcanvas-body d-flex flex-column h-100 p-0 pt-lg-3 overflow-y-auto">
       <hr class="mx-3 my-3 border-secondary opacity-25" />
-      <ul class="nav nav-pills flex-column mb-auto">
+      <ul class="nav nav-pills flex-column flex-grow-1 mb-0 w-100">
         <li class="nav-item">
           <a href="{% url 'persons:person_list' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'list' %}active{% else %}text-white{% endif %}" aria-current="page">
             <i class="bi bi-list-task"></i>
@@ -14,9 +14,9 @@
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'persons:person_create' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'create' %}active{% else %}text-white{% endif %}">
-            <i class="bi bi-file-earmark-plus"></i>
-            Створити запис
+          <a href="{% url 'persons:tck_reference' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'tck_reference' %}active{% else %}text-white{% endif %}">
+            <i class="bi bi-files"></i>
+            Довідник ТЦК
           </a>
         </li>
         <li class="nav-item d-md-none">
