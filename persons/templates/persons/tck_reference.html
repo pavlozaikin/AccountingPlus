@@ -141,7 +141,7 @@
 <p class="text-muted">У переліку зібрано {{ tck_entries_total }} органів територіальних центрів комплектування та соціальної підтримки.</p>
 <div class="tck-accordion">
   {% for region in tck_regions %}
-    <details class="tck-accordion__item">
+    <details class="tck-accordion__item" {% if forloop.first %}open{% endif %}>
       <summary class="tck-accordion__summary">
         <span>{{ region.name }}</span>
       </summary>
