@@ -8,13 +8,13 @@
       <hr class="mx-3 my-3 border-secondary opacity-25" />
       <ul class="nav nav-pills flex-column flex-grow-1 mb-0 w-100">
         <li class="nav-item">
-          <a href="{% url 'persons:person_list' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'list' %}active{% else %}text-white{% endif %}" aria-current="page">
+          <a href="{% url 'persons:person_list' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'list' %}active{% else %}text-white{% endif %}" {% if sidebar_active == 'list' %}aria-current="page"{% endif %}>
             <i class="bi bi-list-task"></i>
             Загальний список
           </a>
         </li>
         <li class="nav-item">
-          <a href="{% url 'persons:tck_reference' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'tck_reference' %}active{% else %}text-white{% endif %}">
+          <a href="{% url 'persons:tck_reference' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'tck_reference' %}active{% else %}text-white{% endif %}" {% if sidebar_active == 'tck_reference' %}aria-current="page"{% endif %}>
             <i class="bi bi-files"></i>
             Довідник ТЦК
           </a>

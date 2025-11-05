@@ -10,27 +10,30 @@
     </a>
   </div>
 </div>
-<form method="get" class="mb-3">
-  <label for="person-search" class="form-label">Пошук у переліку</label>
-  <div class="input-group">
-    <span class="input-group-text" id="person-search-label">
-      <i class="bi bi-search"></i>
-    </span>
-    <input
-      type="search"
-      class="form-control"
-      id="person-search"
-      name="q"
-      placeholder="Введіть ПІБ або номер у ЄДРПВР"
-      value="{{ search_query }}"
-      aria-describedby="person-search-label"
-    >
-    {% if search_query %}
-      <a href="{% url 'persons:person_list' %}" class="btn btn-outline-secondary">
-        Очистити
-      </a>
-    {% endif %}
-    <button class="btn btn-primary" type="submit">Знайти</button>
+<form method="get" class="person-search mb-4" data-person-search-form>
+  <div class="person-search__wrapper d-flex align-items-center" role="search">
+    <div class="person-search__input-holder flex-grow-1">
+      <input
+        type="search"
+        class="form-control person-search__input"
+        id="person-search"
+        name="q"
+        placeholder="Для пошуку введіть ПІБ або номер у ЄДРПВР"
+        value="{{ search_query }}"
+        autocomplete="off"
+        data-person-search-input
+      >
+      <button
+        type="button"
+        class="person-search__clear"
+        data-person-search-clear
+        aria-label="Очистити пошуковий запит"
+        {% if not search_query %}hidden{% endif %}
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <button class="btn btn-primary person-search__submit" type="submit">Шукати</button>
   </div>
 </form>
 {% if persons %}
