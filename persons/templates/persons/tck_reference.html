@@ -111,6 +111,32 @@
 {% block content %}
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-1 pb-2 mb-3 border-bottom">
   <h1 class="h2 mb-0">Довідник ТЦК</h1>
+  <div class="btn-toolbar mb-2 mb-md-0">
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-arrow-up-right"></i>
+        Джерело
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a
+            class="dropdown-item"
+            href="https://mod.gov.ua/vijskovij-oblik/teritorialni-czentri-komplektuvannya-ta-soczialnoyi-pidtrimki"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Перелік</a>
+        </li>
+        <li>
+          <a
+            class="dropdown-item"
+            href="https://mod.gov.ua/diyalnist/normativno-pravova-baza/dovidnik-nomeriv-telefoniv-ta-imejliv-t-cz-k-ta-sp"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Файл-довідник</a>
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>
 <p class="text-muted">У переліку зібрано {{ tck_entries_total }} органів територіальних центрів комплектування та соціальної підтримки.</p>
 <div class="tck-accordion">
