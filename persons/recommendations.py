@@ -19,6 +19,9 @@ class PersonData(Fact):
 class PersonRecommendationEngine(KnowledgeEngine):
     """Small wrapper around Experta KnowledgeEngine for person suggestions."""
 
+    RNOKPP_LENGTH = 10
+    RNOKPP_BASE_DATE = date(1899, 12, 31)
+
     def __init__(self) -> None:
         super().__init__()
         self._recommendations: List[str] = []
@@ -85,6 +88,33 @@ class PersonRecommendationEngine(KnowledgeEngine):
         if isinstance(value, str):
             return bool(value.strip())
         return True
+
+    def _normalize_rnokpp(self, value: Any) -> Optional[str]:
+        if not self._has_value(value):
+            return None
+        digits = "".join(ch for ch in str(value) if ch.isdigit())
+        if len(digits) != self.RNOKPP_LENGTH:
+            return None
+        return digits
+
+    def _rnokpp_ninth_digit(self, rnokpp_value: Any) -> Optional[int]:
+        digits = self._normalize_rnokpp(rnokpp_value)
+        if not digits:
+            return None
+        try:
+            return int(digits[8])
+        except (ValueError, IndexError):
+            return None
+
+    def _rnokpp_birth_date_days(self, rnokpp_value: Any) -> Optional[int]:
+        digits = self._normalize_rnokpp(rnokpp_value)
+        if not digits:
+            return None
+        try:
+            days = int(digits[:5])
+        except ValueError:
+            return None
+        return days
 
     def _all_fields_present(self, fact: Fact, fields: Sequence[str]) -> bool:
         return all(self._has_value(fact.get(field)) for field in fields)
@@ -238,6 +268,59 @@ class PersonRecommendationEngine(KnowledgeEngine):
             self._recommendations.append(
                 "Використовується email-сервіс держави-агресора. Негайно змініть email!"
             )
+
+    @Rule(
+        PersonData(
+            gender=MATCH.gender,
+            rnokpp=MATCH.rnokpp,
+            first_name=MATCH.first_name,
+            last_name=MATCH.last_name,
+        )
+    )
+    def recommend_rnokpp_gender_parity_male(
+        self, gender: str, rnokpp: Any, first_name: str, last_name: str
+    ) -> None:  # type: ignore[override]
+        if gender != "male":
+            return
+        ninth_digit = self._rnokpp_ninth_digit(rnokpp)
+        if ninth_digit is None or ninth_digit % 2 != 0:
+            return
+        self._recommendations.append(
+            f"{first_name} {last_name} має \"жіночий\" РНОКПП. Усуньте помилку"
+        )
+
+    @Rule(
+        PersonData(
+            gender=MATCH.gender,
+            rnokpp=MATCH.rnokpp,
+            first_name=MATCH.first_name,
+            last_name=MATCH.last_name,
+        )
+    )
+    def recommend_rnokpp_gender_parity_female(
+        self, gender: str, rnokpp: Any, first_name: str, last_name: str
+    ) -> None:  # type: ignore[override]
+        if gender != "female":
+            return
+        ninth_digit = self._rnokpp_ninth_digit(rnokpp)
+        if ninth_digit is None or ninth_digit % 2 == 0:
+            return
+        self._recommendations.append(
+            f"{first_name} {last_name} має \"чоловічий\" РНОКПП. Усуньте помилку"
+        )
+
+    @Rule(PersonData(rnokpp=MATCH.rnokpp, birth_date=MATCH.birth_date))
+    def recommend_rnokpp_birthdate_mismatch(self, rnokpp: Any, birth_date: Any) -> None:  # type: ignore[override]
+        birth = self._parse_date(birth_date)
+        if not birth:
+            return
+        days_from_rnokpp = self._rnokpp_birth_date_days(rnokpp)
+        if days_from_rnokpp is None:
+            return
+        expected_days = (birth - self.RNOKPP_BASE_DATE).days
+        if days_from_rnokpp == expected_days:
+            return
+        self._recommendations.append("У РНОКПП виявлено ймовірну помилку у перших 5 цифрах")
 
     @Rule(
         PersonData(

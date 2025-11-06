@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% block title %}Ознайомлення з Правилами — Облік+{% endblock %}
+{% block extra_css %}
+  {{ block.super }}
+  <style>
+    .rules-page__header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 0.5rem;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .rules-wrapper {
+      background-color: #eeece5;
+      border-radius: 1rem;
+      padding: 2rem;
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      box-sizing: border-box;
+    }
+
+    .rules-logo {
+      font-family: var(--app-heading-font-family);
+      font-weight: 700;
+      font-size: 1.75rem;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.02em;
+    }
+
+    .rules-logo__plus {
+      color: var(--bs-primary);
+    }
+
+    .rules-logo {
+      display: none;
+    }
+
+    .rules-content h1:first-child {
+      margin-top: 0;
+    }
+
+    .rules-content h1 {
+      font-family: var(--app-heading-font-family);
+      font-weight: 700;
+      text-align: center;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.75rem;
+    }
+
+    .rules-subtitle {
+      font-family: var(--app-heading-font-family);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .rules-plain-text {
+      white-space: pre-wrap;
+      font-size: 1rem;
+      line-height: 1.65;
+      font-family: var(--bs-body-font-family);
+    }
+
+    .rules-plain-text a,
+    .rules-plain-text .rules-link {
+      font-size: 1em !important;
+      font-weight: 400 !important;
+      font-family: var(--bs-body-font-family) !important;
+      color: var(--bs-primary);
+      text-decoration: underline;
+    }
+
+    .rules-plain-text a:hover,
+    .rules-plain-text a:focus,
+    .rules-plain-text .rules-link:hover,
+    .rules-plain-text .rules-link:focus {
+      color: var(--bs-primary);
+      text-decoration: none;
+    }
+
+    .rules-link--braced {
+      font-size: 1em !important;
+      font-weight: 400 !important;
+    }
+
+    .rules-braced {
+      font-size: 0.85em;
+      font-weight: inherit;
+      font-family: var(--bs-body-font-family);
+    }
+
+    .rules-plain-text strong {
+      font-weight: 600;
+    }
+
+    .rules-plain-text b,
+    .rules-plain-text em,
+    .rules-plain-text i {
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .rules-plain-text ::selection {
+      background-color: rgba(255, 186, 0, 0.25);
+    }
+
+    .rules-acknowledgement {
+      margin-top: 2rem;
+    }
+
+    .rules-acknowledgement__note {
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .rules-acknowledgement__row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .rules-acknowledgement__date {
+      flex: 1 1 200px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .rules-acknowledgement__name {
+      flex: 1 1 200px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    @media (max-width: 575.98px) {
+      .rules-wrapper {
+        padding: 1.5rem;
+        max-width: 100%;
+      }
+
+      .rules-acknowledgement__row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .rules-acknowledgement__name {
+        text-align: left;
+      }
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 20mm 10mm 20mm 30mm;
+      }
+
+      body {
+        background-color: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        left: -30mm;
+        right: -10mm;
+        height: 20mm;
+        background: #ffffff;
+        z-index: 999;
+      }
+
+      body::before {
+        top: -20mm;
+      }
+
+      body::after {
+        bottom: -20mm;
+      }
+
+      #siteHeader,
+      #siteFooter,
+      .sidebar,
+      .heading-toolbar,
+      .navbar,
+      .site-footer {
+        display: none !important;
+      }
+
+      .app-main {
+        padding: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+      }
+
+      .rules-page__header {
+        display: none !important;
+      }
+
+      .rules-wrapper {
+        margin: 0;
+        padding: 0;
+        background-color: #ffffff !important;
+        border-radius: 0;
+        max-width: none;
+        width: auto;
+        page-break-after: auto;
+        position: relative;
+      }
+
+      .rules-logo {
+        display: block;
+        margin-bottom: 1.5rem;
+      }
+
+      .rules-page__header {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .rules-page__header h1 {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 1.5rem;
+      }
+
+      .print-hidden {
+        display: none !important;
+      }
+
+      .rules-plain-text a,
+      .rules-plain-text .rules-link {
+        color: inherit !important;
+        text-decoration: none !important;
+        pointer-events: none;
+        font-family: var(--bs-body-font-family) !important;
+        font-weight: 300 !important;
+      }
+
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <div class="rules-page__header">
+    <h1 class="h2 mb-0">Ознайомлення з Правилами</h1>
+    <div class="btn-toolbar heading-toolbar mb-2 mb-md-0">
+      <div class="btn-group print-hidden">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-file-earmark-arrow-down"></i>
+          Дії
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <a class="dropdown-item" href="{% url 'persons:person_rules_pdf' person.pk %}">
+              Зберегти у PDF
+            </a>
+          </li>
+          <li>
+            <button type="button" class="dropdown-item js-print-rules">
+              Роздрукувати
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="rules-wrapper">
+    <div class="rules-logo">
+      Облік<span class="rules-logo__plus">+</span>
+    </div>
+    <div class="rules-content">
+      {{ rules_html }}
+    </div>
+    <div class="rules-acknowledgement">
+      <p class="rules-acknowledgement__note mb-3">{{ acknowledgement_note }}</p>
+      <div class="rules-acknowledgement__row">
+        <div class="rules-acknowledgement__date">{{ acknowledged_on|date:"d.m.Y" }}</div>
+        <div class="rules-acknowledgement__name">{{ person.first_name }} {{ person.last_name|upper }}</div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+  {{ block.super }}
+  <script>
+    (() => {
+      const printTrigger = document.querySelector(".js-print-rules");
+      if (printTrigger) {
+        printTrigger.addEventListener("click", () => {
+          window.print();
+        });
+      }
+    })();
+  </script>
+{% endblock %}

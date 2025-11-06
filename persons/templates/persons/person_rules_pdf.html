@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: "e-Ukraine";
+        font-style: normal;
+        font-weight: 400;
+        src: url("https://fonts.cdnfonts.com/s/19780/e-Ukraine-Regular.woff") format("woff");
+      }
+
+      @font-face {
+        font-family: "e-Ukraine";
+        font-style: normal;
+        font-weight: 600;
+        src: url("https://fonts.cdnfonts.com/s/19780/e-Ukraine-Medium.woff") format("woff");
+      }
+
+      @font-face {
+        font-family: "e-Ukraine Head";
+        font-style: normal;
+        font-weight: 700;
+        src: url("https://fonts.cdnfonts.com/s/19780/e-UkraineHead-Bold.woff") format("woff");
+      }
+
+      @page {
+        size: A4;
+        margin: 20mm 10mm 20mm 30mm;
+        background: #eeece5;
+        @top-left {
+          content: none;
+        }
+        @top-center {
+          content: none;
+        }
+        @top-right {
+          content: none;
+        }
+        @bottom-left {
+          content: none;
+        }
+        @bottom-center {
+          content: counter(page);
+          font-family: "e-Ukraine Head", sans-serif;
+          font-size: 10pt;
+        }
+        @bottom-right {
+          content: none;
+        }
+      }
+
+      html {
+        background-color: #eeece5;
+      }
+
+      body {
+        font-family: "e-Ukraine", "Arial", sans-serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        background-color: #eeece5;
+        color: #141414;
+        margin: 0;
+      }
+
+      .pdf-wrapper {
+        background-color: #eeece5;
+      }
+
+      .pdf-logo {
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        font-weight: 700;
+        font-size: 20pt;
+        letter-spacing: 0.02em;
+        margin-bottom: 8pt;
+      }
+
+      .pdf-logo__plus {
+        color: {{ primary_color }};
+      }
+
+      .pdf-rules {
+        font-size: 12pt;
+      }
+
+      .pdf-rules h1 {
+        font-size: 20pt;
+        margin-top: 0;
+        margin-bottom: 10pt;
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .pdf-rules h1 + p {
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 16pt;
+      }
+
+      .pdf-rules h2 {
+        font-size: 16pt;
+        margin-top: 18pt;
+        margin-bottom: 8pt;
+      }
+
+      .pdf-rules h3 {
+        font-size: 14pt;
+        margin-top: 16pt;
+        margin-bottom: 6pt;
+      }
+
+      .pdf-rules p {
+        margin: 0 0 8pt;
+      }
+
+      .rules-plain-text {
+        white-space: pre-wrap;
+        font-family: "e-Ukraine", "Arial", sans-serif;
+        font-size: 12pt;
+        line-height: 1.6;
+        margin-top: 8pt;
+      }
+
+      .rules-link,
+      .rules-link:visited {
+        color: {{ primary_color }};
+        text-decoration: underline;
+        font-size: 1em;
+        font-weight: 400;
+      }
+
+      .rules-link--braced {
+        font-size: 1em;
+        font-weight: 400;
+      }
+
+      .rules-braced {
+        font-size: 0.85em;
+        font-weight: inherit;
+        font-family: "e-Ukraine", "Arial", sans-serif;
+      }
+
+      .pdf-acknowledgement {
+        margin-top: 22pt;
+      }
+
+      .pdf-acknowledgement__note {
+        font-weight: 600;
+        margin: 0 0 14pt;
+      }
+
+      .pdf-acknowledgement__row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10pt;
+      }
+
+      .pdf-acknowledgement__date {
+        text-align: left;
+        font-weight: 600;
+      }
+
+      .pdf-acknowledgement__name {
+        text-align: right;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pdf-wrapper">
+      <div class="pdf-logo">
+        Облік<span class="pdf-logo__plus">+</span>
+      </div>
+      <div class="pdf-rules">
+        {{ rules_html }}
+      </div>
+      <div class="pdf-acknowledgement">
+        <p class="pdf-acknowledgement__note">{{ acknowledgement_note }}</p>
+        <div class="pdf-acknowledgement__row">
+          <div class="pdf-acknowledgement__date">{{ acknowledged_on|date:"d.m.Y" }}</div>
+          <div class="pdf-acknowledgement__name">{{ person.first_name }} {{ person.last_name|upper }}</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

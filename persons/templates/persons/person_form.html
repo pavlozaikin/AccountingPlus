@@ -22,10 +22,22 @@
     {% endif %}
   </h1>
   <div class="btn-toolbar heading-toolbar mb-2 mb-md-0">
-    <button form="personForm" type="submit" name="submit_action" value="recommend" class="btn btn-primary d-flex align-items-center gap-2">
-      <i class="bi bi-file-earmark-check-fill"></i>
-      Отримати рекомендацію
-    </button>
+    {% if object %}
+      <div class="btn-group">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="personActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-person-bounding-box"></i>
+          Дії
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="personActionsDropdown">
+          <li>
+            <button form="personForm" type="submit" name="submit_action" value="recommend" class="dropdown-item">Перевірити дані</button>
+          </li>
+          <li>
+            <a href="{% url 'persons:person_rules' object.pk %}" class="dropdown-item">Ознайомити з Правилами</a>
+          </li>
+        </ul>
+      </div>
+    {% endif %}
   </div>
 </div>
 <form id="personForm" method="post" novalidate>
@@ -47,7 +59,10 @@
     {% include 'includes/form_field.html' with field=form.last_name wrapper_class='col-md-6 mb-3' %}
     {% include 'includes/form_field.html' with field=form.first_name wrapper_class='col-md-6 mb-3' %}
   </div>
-  {% include 'includes/form_field.html' with field=form.middle_name wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.middle_name wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.gender wrapper_class='col-md-6 mb-3' %}
+  </div>
   <div class="row g-3">
     {% include 'includes/form_field.html' with field=form.birth_date wrapper_class='col-md-6 mb-3' %}
     {% include 'includes/form_field.html' with field=form.rnokpp wrapper_class='col-md-6 mb-3' %}

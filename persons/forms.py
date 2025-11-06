@@ -132,6 +132,7 @@ class PersonForm(forms.ModelForm):
             "last_name",
             "first_name",
             "middle_name",
+            "gender",
             "birth_date",
             "rnokpp",
             "address_registered",
@@ -160,6 +161,7 @@ class PersonForm(forms.ModelForm):
             "notif_dismiss_date",
         ]
         widgets = {
+            "gender": forms.Select(attrs={"class": COMMON_SELECT_CLASSES}),
             "birth_date": DateInput(attrs={"class": COMMON_INPUT_CLASSES}),
             "appoint_order_date": DateInput(attrs={"class": COMMON_INPUT_CLASSES}),
             "dismiss_order_date": DateInput(attrs={"class": COMMON_INPUT_CLASSES}),
@@ -175,6 +177,9 @@ class PersonForm(forms.ModelForm):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        gender_field = self.fields.get("gender")
+        if gender_field is not None:
+            gender_field.choices = [("", "Оберіть стать")] + list(Person.GENDER_CHOICES)
         tcksp_field = self.fields.get("tcksp")
         if tcksp_field is not None:
             widget = TckAutocompleteWidget(

@@ -1,3 +1,4 @@
 # Requires Python 3.9 for runtime compatibility
 Django>=4.2,<5.0
 experta>=1.9.4
+WeasyPrint>=62.0,<63.0

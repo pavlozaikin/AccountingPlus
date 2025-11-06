@@ -5,6 +5,10 @@ from django.urls import reverse
 
 
 class Person(models.Model):
+    GENDER_CHOICES = [
+        ("male", "Чоловік"),
+        ("female", "Жінка"),
+    ]
     CATEGORY_CHOICES = [
         ("призовник", "призовник"),
         ("військовозобовʼязаний", "військовозобовʼязаний"),
@@ -14,6 +18,7 @@ class Person(models.Model):
     last_name = models.CharField("Прізвище", max_length=150)
     first_name = models.CharField("Імʼя", max_length=150)
     middle_name = models.CharField("По батькові", max_length=150, blank=True)
+    gender = models.CharField("Стать", max_length=10, choices=GENDER_CHOICES, blank=True)
     birth_date = models.DateField("Дата народження", blank=True, null=True)
     rnokpp = models.CharField("РНОКПП", max_length=10, blank=True)
     address_registered = models.CharField(
