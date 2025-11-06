@@ -119,15 +119,22 @@
       margin-bottom: 1.5rem;
     }
 
+    .rules-acknowledgement__rows {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
     .rules-acknowledgement__row {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
+      align-items: center;
     }
 
     .rules-acknowledgement__date {
-      flex: 1 1 200px;
-      text-align: left;
+      flex: 0 0 auto;
+      min-width: 140px;
       font-weight: 600;
     }
 
@@ -212,18 +219,6 @@
         margin-bottom: 1.5rem;
       }
 
-      .rules-page__header {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-      }
-
-      .rules-page__header h1 {
-        text-align: center;
-        width: 100%;
-        margin-bottom: 1.5rem;
-      }
-
       .print-hidden {
         display: none !important;
       }
@@ -258,7 +253,6 @@
         font-family: var(--bs-body-font-family) !important;
         font-weight: 300 !important;
       }
-
     }
   </style>
 {% endblock %}
@@ -266,22 +260,21 @@
   <div class="rules-page__header">
     <h1 class="h2 mb-0 print-hidden">Ознайомлення з Правилами</h1>
     <div class="btn-toolbar heading-toolbar mb-2 mb-md-0">
+      <a
+        href="{% url 'persons:person_rules_bulk' %}"
+        class="btn btn-outline-secondary me-2 print-hidden"
+      >
+        <i class="bi bi-arrow-left"></i>
+        Повернутися до вибору
+      </a>
       <div class="btn-group print-hidden">
         <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-file-earmark-arrow-down"></i>
+          <i class="bi bi-gear"></i>
           Дії
         </button>
         <ul class="dropdown-menu dropdown-menu-end">
-          <li>
-            <a class="dropdown-item" href="{% url 'persons:person_rules_pdf' person.pk %}">
-              Зберегти у PDF
-            </a>
-          </li>
-          <li>
-            <button type="button" class="dropdown-item js-print-rules">
-              Роздрукувати
-            </button>
-          </li>
+          <li><button type="button" class="dropdown-item js-bulk-save-pdf">Зберегти у PDF</button></li>
+          <li><button type="button" class="dropdown-item js-print-rules">Роздрукувати</button></li>
         </ul>
       </div>
     </div>
@@ -295,18 +288,35 @@
     </div>
     <div class="rules-acknowledgement">
       <p class="rules-acknowledgement__note mb-3">{{ acknowledgement_note }}</p>
-      <div class="rules-acknowledgement__row">
-        <div class="rules-acknowledgement__date">{{ acknowledged_on|date:"d.m.Y" }}</div>
-        <div class="rules-acknowledgement__name">{{ person.first_name }} {{ person.last_name|upper }}</div>
+      <div class="rules-acknowledgement__rows">
+        {% for entry in acknowledgement_entries %}
+          <div class="rules-acknowledgement__row">
+            <div class="rules-acknowledgement__date">{{ entry.date|date:"d.m.Y" }}</div>
+            <div class="rules-acknowledgement__name">{{ entry.full_name }}</div>
+          </div>
+        {% endfor %}
       </div>
     </div>
   </div>
+  <form method="post" action="{% url 'persons:person_rules_bulk_pdf' %}" class="d-none" id="bulkPdfForm">
+    {% csrf_token %}
+    {% for person in selected_persons %}
+      <input type="hidden" name="person_ids" value="{{ person.pk }}">
+    {% endfor %}
+  </form>
 {% endblock %}
 {% block extra_js %}
   {{ block.super }}
   <script>
     (() => {
+      const pdfTrigger = document.querySelector(".js-bulk-save-pdf");
+      const pdfForm = document.getElementById("bulkPdfForm");
       const printTrigger = document.querySelector(".js-print-rules");
+      if (pdfTrigger && pdfForm) {
+        pdfTrigger.addEventListener("click", () => {
+          pdfForm.submit();
+        });
+      }
       if (printTrigger) {
         printTrigger.addEventListener("click", () => {
           window.print();

@@ -532,11 +532,11 @@ class PersonRecommendationEngine(KnowledgeEngine):
             return
         self._recommendations.append("Необхідно зазначити задеклароване та фактичне місце проживання")
 
-    @Rule(PersonData(edrpvr_number=MATCH.edrpvr_number))
-    def recommend_missing_edrpvr(self, edrpvr_number: Optional[str]) -> None:  # type: ignore[override]
-        if edrpvr_number:
+    @Rule(AS.person_fact << PersonData())
+    def recommend_missing_edrpvr(self, person_fact: Fact) -> None:  # type: ignore[override]
+        if self._has_value(person_fact.get("edrpvr_number")):
             return
-        self._recommendations.append("Вкажіть номер в ЄДРПВР")
+        self._recommendations.append("Додайте номер у ЄДРПВР")
 
     @Rule(
         PersonData(

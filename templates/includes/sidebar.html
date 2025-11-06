@@ -13,6 +13,18 @@
             Загальний список
           </a>
         </li>
+        <li class="nav-item">
+          <a href="{% url 'persons:person_recommendations_bulk' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'recommendations' %}active{% else %}text-white{% endif %}" {% if sidebar_active == 'recommendations' %}aria-current="page"{% endif %}>
+            <i class="bi bi-stars"></i>
+            Рекомендації
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'persons:person_rules_bulk' %}" class="nav-link d-flex align-items-center {% if sidebar_active == 'rules_bulk' %}active{% else %}text-white{% endif %}" {% if sidebar_active == 'rules_bulk' %}aria-current="page"{% endif %}>
+            <i class="bi bi-file-earmark"></i>
+            Ознайомити з Правилами
+          </a>
+        </li>
         <li class="nav-item px-3">
           <hr class="border-secondary opacity-25 my-2" />
         </li>

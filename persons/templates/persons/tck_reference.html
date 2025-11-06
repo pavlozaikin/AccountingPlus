@@ -150,6 +150,16 @@
   </div>
 </div>
 <p class="text-muted">У переліку зібрано {{ tck_entries_total }} органів територіальних центрів комплектування та соціальної підтримки.</p>
+<div class="mb-3">
+  <label class="form-label" for="tck-search">Пошук серед ТЦК та СП</label>
+  <input
+    type="search"
+    class="form-control"
+    id="tck-search"
+    placeholder="Почніть вводити назву чи населений пункт"
+    autocomplete="off"
+  />
+</div>
 <div class="tck-accordion">
   {% for region in tck_regions %}
     <details class="tck-accordion__item">
@@ -193,105 +203,245 @@
   {{ block.super }}
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      var accordionItems = Array.prototype.slice.call(document.querySelectorAll('.tck-accordion__item'));
+
+      initTckSearch(accordionItems);
+
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         return;
       }
 
-      var accordionItems = document.querySelectorAll('.tck-accordion__item');
-
       accordionItems.forEach(function (details) {
-        var summary = details.querySelector('.tck-accordion__summary');
-        var body = details.querySelector('.tck-accordion__body');
+        setupAccordionAnimation(details);
+      });
+    });
 
-        if (!summary || !body) {
-          return;
-        }
+    function initTckSearch(accordionItems) {
+      var searchInput = document.getElementById('tck-search');
 
-        var isAnimating = false;
+      if (!searchInput || !accordionItems.length) {
+        return;
+      }
 
-        body.style.overflow = 'hidden';
+      function handleInput(event) {
+        var query = event.target.value.trim().toLowerCase();
+        var hasQuery = query.length > 0;
 
-        if (!details.open) {
-          body.style.height = '0px';
-          body.style.opacity = '0';
-        } else {
-          body.style.height = 'auto';
-          body.style.opacity = '1';
-        }
+        accordionItems.forEach(function (details) {
+          var entries = Array.prototype.slice.call(details.querySelectorAll('.tck-entry'));
+          var matches = 0;
 
-        summary.addEventListener('click', function (event) {
-          event.preventDefault();
+          entries.forEach(function (entry) {
+            var entryText = entry.textContent || '';
+            var isMatch = !hasQuery || entryText.toLowerCase().includes(query);
 
-          if (isAnimating) {
+            entry.style.display = isMatch ? '' : 'none';
+
+            if (isMatch) {
+              matches += 1;
+            }
+          });
+
+          if (!hasQuery) {
+            details.style.display = '';
+
+            entries.forEach(function (entry) {
+              entry.style.display = '';
+            });
+
+            if (details.dataset.prevOpen) {
+              var wasOpen = details.dataset.prevOpen === '1';
+              delete details.dataset.prevOpen;
+
+              if (details.tckControls) {
+                if (wasOpen) {
+                  details.tckControls.expandImmediate();
+                } else {
+                  details.tckControls.collapseImmediate();
+                }
+              } else if (wasOpen) {
+                details.setAttribute('open', '');
+              } else {
+                details.removeAttribute('open');
+              }
+            }
+
             return;
           }
 
-          if (details.open) {
-            collapse(details, body);
-          } else {
-            expand(details, body);
+          if (matches > 0) {
+            if (!details.dataset.prevOpen) {
+              details.dataset.prevOpen = details.hasAttribute('open') ? '1' : '0';
+            }
+
+            details.style.display = '';
+
+            if (details.tckControls) {
+              details.tckControls.expandImmediate();
+            } else {
+              details.setAttribute('open', '');
+            }
+
+            return;
           }
+
+          if (!details.dataset.prevOpen) {
+            details.dataset.prevOpen = details.hasAttribute('open') ? '1' : '0';
+          }
+
+          if (details.tckControls) {
+            details.tckControls.collapseImmediate();
+          } else {
+            details.removeAttribute('open');
+          }
+
+          details.style.display = 'none';
         });
+      }
 
-        function expand(detailsElement, bodyElement) {
-          isAnimating = true;
-          detailsElement.setAttribute('open', '');
+      searchInput.addEventListener('input', handleInput);
 
-          var startHeight = bodyElement.offsetHeight;
-          var endHeight = bodyElement.scrollHeight;
+      if (searchInput.value.trim().length > 0) {
+        handleInput({ target: searchInput });
+      }
+    }
 
-          bodyElement.style.height = startHeight + 'px';
-          bodyElement.style.opacity = '0';
-          bodyElement.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+    function setupAccordionAnimation(details) {
+      var summary = details.querySelector('.tck-accordion__summary');
+      var body = details.querySelector('.tck-accordion__body');
 
-          requestAnimationFrame(function () {
-            bodyElement.style.height = endHeight + 'px';
-            bodyElement.style.opacity = '1';
-          });
+      if (!summary || !body) {
+        return;
+      }
 
-          bodyElement.addEventListener(
-            'transitionend',
-            function handler(event) {
-              if (event.propertyName === 'height') {
-                bodyElement.style.height = 'auto';
-                bodyElement.style.opacity = '1';
-                bodyElement.style.removeProperty('transition');
-                isAnimating = false;
-              }
-            },
-            { once: true }
-          );
+      var isAnimating = false;
+
+      body.style.overflow = 'hidden';
+
+      if (!details.open) {
+        body.style.height = '0px';
+        body.style.opacity = '0';
+      } else {
+        body.style.height = 'auto';
+        body.style.opacity = '1';
+      }
+
+      summary.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        if (isAnimating) {
+          return;
         }
 
-        function collapse(detailsElement, bodyElement) {
-          isAnimating = true;
-
-          var startHeight = bodyElement.scrollHeight;
-
-          bodyElement.style.height = startHeight + 'px';
-          bodyElement.style.opacity = '1';
-          bodyElement.style.transition = 'height 0.3s ease, opacity 0.3s ease';
-
-          requestAnimationFrame(function () {
-            bodyElement.style.height = '0px';
-            bodyElement.style.opacity = '0';
-          });
-
-          bodyElement.addEventListener(
-            'transitionend',
-            function handler(event) {
-              if (event.propertyName === 'height') {
-                detailsElement.removeAttribute('open');
-                bodyElement.style.height = '0px';
-                bodyElement.style.opacity = '0';
-                bodyElement.style.removeProperty('transition');
-                isAnimating = false;
-              }
-            },
-            { once: true }
-          );
+        if (details.open) {
+          collapse(false);
+        } else {
+          expand(false);
         }
       });
-    });
+
+      function expand(skipAnimation) {
+        if (details.open && !skipAnimation) {
+          return;
+        }
+
+        var startHeight = body.offsetHeight;
+        var endHeight = body.scrollHeight;
+
+        details.setAttribute('open', '');
+
+        if (skipAnimation) {
+          body.style.removeProperty('transition');
+          body.style.height = 'auto';
+          body.style.opacity = '1';
+          isAnimating = false;
+          return;
+        }
+
+        isAnimating = true;
+        body.style.height = startHeight + 'px';
+        body.style.opacity = '0';
+        body.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+
+        requestAnimationFrame(function () {
+          body.style.height = endHeight + 'px';
+          body.style.opacity = '1';
+        });
+
+        body.addEventListener(
+          'transitionend',
+          function handler(event) {
+            if (event.propertyName === 'height') {
+              body.style.height = 'auto';
+              body.style.opacity = '1';
+              body.style.removeProperty('transition');
+              isAnimating = false;
+            }
+          },
+          { once: true }
+        );
+      }
+
+      function collapse(skipAnimation) {
+        if (!details.open && !skipAnimation) {
+          return;
+        }
+
+        var startHeight = body.scrollHeight;
+
+        if (skipAnimation) {
+          details.removeAttribute('open');
+          body.style.removeProperty('transition');
+          body.style.height = '0px';
+          body.style.opacity = '0';
+          isAnimating = false;
+          return;
+        }
+
+        isAnimating = true;
+        body.style.height = startHeight + 'px';
+        body.style.opacity = '1';
+        body.style.transition = 'height 0.3s ease, opacity 0.3s ease';
+
+        requestAnimationFrame(function () {
+          body.style.height = '0px';
+          body.style.opacity = '0';
+        });
+
+        body.addEventListener(
+          'transitionend',
+          function handler(event) {
+            if (event.propertyName === 'height') {
+              details.removeAttribute('open');
+              body.style.height = '0px';
+              body.style.opacity = '0';
+              body.style.removeProperty('transition');
+              isAnimating = false;
+            }
+          },
+          { once: true }
+        );
+      }
+
+      details.tckControls = {
+        expand: function () {
+          expand(false);
+        },
+        collapse: function () {
+          collapse(false);
+        },
+        expandImmediate: function () {
+          expand(true);
+        },
+        collapseImmediate: function () {
+          collapse(true);
+        },
+        isAnimating: function () {
+          return isAnimating;
+        },
+        body: body,
+        summary: summary
+      };
+    }
   </script>
 {% endblock %}

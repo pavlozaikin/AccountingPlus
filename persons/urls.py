@@ -13,6 +13,10 @@ urlpatterns = [
     path("persons/create/", views.PersonCreateView.as_view(), name="person_create"),
     path("persons/<int:pk>/update/", views.PersonUpdateView.as_view(), name="person_update"),
     path("persons/<int:pk>/delete/", views.PersonDeleteView.as_view(), name="person_delete"),
+    path("persons/recommendations/", views.PersonRecommendationsBulkView.as_view(), name="person_recommendations_bulk"),
+    path("persons/recommendations/pdf/", views.PersonRecommendationsBulkPdfView.as_view(), name="person_recommendations_bulk_pdf"),
+    path("persons/rules/bulk/", views.PersonRulesBulkView.as_view(), name="person_rules_bulk"),
+    path("persons/rules/bulk/pdf/", views.PersonRulesBulkPdfView.as_view(), name="person_rules_bulk_pdf"),
     path("persons/<int:pk>/rules/", views.PersonRulesView.as_view(), name="person_rules"),
     path("persons/<int:pk>/rules/pdf/", views.PersonRulesPdfView.as_view(), name="person_rules_pdf"),
 ]

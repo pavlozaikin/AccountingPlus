@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% block title %}Отримання рекомендацій — Облік+{% endblock %}
+{% block extra_css %}
+  {{ block.super }}
+  <style>
+    .recommendations-page__header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 0.75rem;
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      gap: 1rem;
+    }
+
+    .recommendations-brand {
+      font-family: "e-Ukraine Head", var(--app-heading-font-family), sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      line-height: 1;
+      display: none;
+    }
+
+    .recommendations-brand__plus {
+      color: var(--bs-primary);
+    }
+
+    .recommendations-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .recommendations-controls__back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .recommendations-heading {
+      flex: 1 1 240px;
+      text-align: left;
+    }
+
+    .recommendations-heading__title {
+      font-family: "e-Ukraine Head", var(--app-heading-font-family), sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.75rem, 2vw + 1rem, 2.5rem);
+      margin-bottom: 0.35rem;
+    }
+
+    .recommendations-heading__subtitle {
+      font-family: "e-Ukraine Head", var(--app-heading-font-family), sans-serif;
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+      display: none;
+    }
+
+    .recommendations-heading__timestamp {
+      font-size: 0.95rem;
+      color: #6c757d;
+      margin-bottom: 0;
+      font-weight: 500;
+    }
+
+    .recommendations-heading__timestamp:empty {
+      display: none;
+    }
+
+    .recommendations-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .recommendations-card {
+      background-color: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.04);
+    }
+
+    .recommendations-card__header {
+      margin-bottom: 1rem;
+    }
+
+    .recommendations-card__title {
+      margin: 0;
+      font-family: var(--app-heading-font-family);
+      font-weight: 700;
+      font-size: 1.4rem;
+    }
+
+    .recommendations-card__subtitle {
+      margin: 0.35rem 0 0;
+      font-size: 0.95rem;
+      color: #6c757d;
+    }
+
+    .recommendations-card__list {
+      margin: 0;
+      padding-left: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .recommendations-card__list li {
+      line-height: 1.55;
+    }
+
+    .recommendations-summary {
+      margin-bottom: 1.5rem;
+      color: #6c757d;
+      font-size: 0.95rem;
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 20mm 10mm 20mm 30mm;
+      }
+
+      body {
+        background-color: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      #siteHeader,
+      #siteFooter,
+      .sidebar,
+      .heading-toolbar,
+      .navbar,
+      .site-footer,
+      .recommendations-controls {
+        display: none !important;
+      }
+
+      .app-main {
+        padding: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+      }
+
+      .recommendations-page__header {
+        display: block;
+        margin-bottom: 1.25rem;
+      }
+
+      .recommendations-brand {
+        display: block !important;
+        text-align: left;
+        margin-bottom: 0.5rem;
+      }
+
+      .recommendations-heading {
+        text-align: center;
+      }
+
+      .recommendations-heading__title {
+        margin-bottom: 0.35rem;
+      }
+
+      .recommendations-heading__subtitle {
+        display: block !important;
+        text-align: center;
+      }
+
+      .recommendations-heading__timestamp {
+        display: block;
+        text-align: center;
+      }
+
+      .recommendations-wrapper {
+        gap: 1rem;
+      }
+
+      .recommendations-card {
+        box-shadow: none;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <div class="recommendations-page__header">
+    <div class="recommendations-brand">
+      Облік<span class="recommendations-brand__plus">+</span>
+    </div>
+    <div class="recommendations-heading">
+      <h1 class="recommendations-heading__title mb-0">Рекомендації</h1>
+      <p class="recommendations-heading__subtitle mb-1">з військового обліку</p>
+      <p class="recommendations-heading__timestamp" data-recommendations-print-timestamp></p>
+    </div>
+    <div class="recommendations-controls print-hidden">
+      <a href="{% url 'persons:person_recommendations_bulk' %}" class="btn btn-outline-secondary recommendations-controls__back">
+        <i class="bi bi-arrow-left"></i>
+        Повернутися до вибору
+      </a>
+      <div class="btn-group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-gear"></i>
+          Дії
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><button type="button" class="dropdown-item js-recommendations-save-pdf">Зберегти у PDF</button></li>
+          <li><button type="button" class="dropdown-item js-recommendations-print">Роздрукувати</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p class="recommendations-summary">{{ selection_summary }}</p>
+  <div class="recommendations-wrapper">
+    {% for entry in recommendations_entries %}
+      <section class="recommendations-card">
+        <header class="recommendations-card__header">
+          <h2 class="recommendations-card__title">{{ entry.full_name }}</h2>
+          <p class="recommendations-card__subtitle">Номер у ЄДРПВР: {{ entry.edrpvr_number }}</p>
+        </header>
+        <ul class="recommendations-card__list">
+          {% for recommendation in entry.recommendations %}
+            <li>{{ recommendation }}</li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% empty %}
+      <section class="recommendations-card">
+        <header class="recommendations-card__header">
+          <h2 class="recommendations-card__title">Рекомендацій немає</h2>
+        </header>
+        <p class="mb-0">Спробуйте розширити критерії вибору або додати записи вручну.</p>
+      </section>
+    {% endfor %}
+  </div>
+  <form method="post" action="{% url 'persons:person_recommendations_bulk_pdf' %}" class="d-none" id="recommendationsPdfForm">
+    {% csrf_token %}
+    {% for person in selected_persons %}
+      <input type="hidden" name="person_ids" value="{{ person.pk }}">
+    {% endfor %}
+    {% for category in selection_categories %}
+      <input type="hidden" name="selected_categories" value="{{ category }}">
+    {% endfor %}
+    {% if selection_summary %}
+      <input type="hidden" name="selection_summary" value="{{ selection_summary }}">
+    {% endif %}
+  </form>
+{% endblock %}
+{% block extra_js %}
+  {{ block.super }}
+  <script>
+    (() => {
+      const pdfTrigger = document.querySelector(".js-recommendations-save-pdf");
+      const pdfForm = document.getElementById("recommendationsPdfForm");
+      const printTrigger = document.querySelector(".js-recommendations-print");
+      const timestampEl = document.querySelector("[data-recommendations-print-timestamp]");
+      const formatDateTime = () => {
+        const now = new Date();
+        const formatter = new Intl.DateTimeFormat("uk-UA", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+        return formatter.format(now);
+      };
+
+      if (pdfTrigger && pdfForm) {
+        pdfTrigger.addEventListener("click", () => {
+          pdfForm.submit();
+        });
+      }
+      if (printTrigger) {
+        printTrigger.addEventListener("click", () => {
+          if (timestampEl) {
+            timestampEl.textContent = formatDateTime();
+          }
+          window.print();
+        });
+      }
+
+    })();
+  </script>
+{% endblock %}

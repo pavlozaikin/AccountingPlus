@@ -1,0 +1,525 @@
+{% extends 'base.html' %}
+{% load persons_extras %}
+{% block title %}Отримання рекомендацій — Облік+{% endblock %}
+{% block extra_css %}
+  {{ block.super }}
+  <style>
+    .recommendations-bulk__header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      align-items: center;
+      padding-top: 0.5rem;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .recommendations-bulk__card {
+      border: none;
+      box-shadow: none;
+    }
+
+    .recommendations-bulk__quick {
+      background-color: #f8f9fc;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      height: 100%;
+    }
+
+    .recommendations-bulk__quick .form-check {
+      margin-bottom: 0.75rem;
+    }
+
+    .recommendations-bulk__quick .form-check-input {
+      margin-top: 0.3rem;
+    }
+
+    .recommendations-bulk__quick .form-check-label {
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .recommendations-bulk__quick .form-check input[type="checkbox"] {
+      margin-right: 0.5rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .recommendations-bulk__heading {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .recommendations-bulk__search-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .recommendations-bulk__info {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      background-color: rgba(25, 135, 84, 0.15);
+      color: #155724;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .recommendations-bulk__list {
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 0.75rem;
+      background-color: #fff;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .recommendations-bulk__list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .recommendations-bulk__list::-webkit-scrollbar-thumb {
+      background-color: rgba(0, 0, 0, 0.15);
+      border-radius: 4px;
+    }
+
+    .recommendations-bulk__person {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      cursor: pointer;
+      transition: background-color 0.15s ease-in-out;
+    }
+
+    .recommendations-bulk__person:last-child {
+      border-bottom: none;
+    }
+
+    .recommendations-bulk__person:hover,
+    .recommendations-bulk__person:focus-within {
+      background-color: rgba(255, 186, 0, 0.08);
+    }
+
+    .recommendations-bulk__person-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      flex: 1;
+      margin-left: 0.75rem;
+    }
+
+    .recommendations-bulk__person input[type="checkbox"] {
+      margin-right: 0.75rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .recommendations-bulk__person-name {
+      font-weight: 600;
+    }
+
+    .recommendations-bulk__remove {
+      margin-left: 1rem;
+    }
+
+    .recommendations-bulk__remove .btn-link {
+      text-decoration: none;
+      padding: 0;
+      color: var(--bs-danger);
+      font-weight: 600;
+    }
+
+    .recommendations-bulk__remove .btn-link:hover,
+    .recommendations-bulk__remove .btn-link:focus {
+      color: var(--bs-danger);
+      text-decoration: none;
+    }
+
+    .recommendations-bulk__person-meta {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
+
+    .recommendations-bulk__footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .recommendations-bulk__search {
+      position: relative;
+      max-width: 320px;
+    }
+
+    .recommendations-bulk__search input[type="search"] {
+      padding-right: 2.5rem;
+    }
+
+    .recommendations-bulk__search-clear {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: #6c757d;
+      padding: 0;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .recommendations-bulk__empty {
+      padding: 1.5rem;
+      text-align: center;
+      color: #6c757d;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 991.98px) {
+      .recommendations-bulk__quick {
+        margin-bottom: 1.5rem;
+      }
+    }
+  </style>
+{% endblock %}
+{% block content %}
+  <div class="recommendations-bulk__header">
+    <h1 class="h2 mb-0">Отримання рекомендацій</h1>
+  </div>
+  <div class="card recommendations-bulk__card">
+    <div class="card-body p-4">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {% for error in form.non_field_errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="row g-4">
+          <div class="col-lg-4">
+            <div class="recommendations-bulk__quick h-100">
+              <h2 class="h5 mb-3">Швидкий вибір</h2>
+              <p class="text-muted small mb-4">
+                Виберіть одну чи кілька категорій, щоб автоматично додати відповідних осіб до списку.
+              </p>
+              {% for checkbox in form.bulk_options %}
+                {% with option_value=checkbox.data|get_item:"value" %}
+                  <div class="form-check" data-recommendations-bulk-category="{{ option_value }}">
+                    {{ checkbox.tag }}
+                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                      {{ checkbox.choice_label }}
+                    </label>
+                  </div>
+                {% endwith %}
+              {% empty %}
+                <p class="text-muted mb-0">Категорії відсутні.</p>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <div class="recommendations-bulk__heading">
+              <h2 class="h5 mb-0">Загальний список</h2>
+              <div class="recommendations-bulk__search-row">
+                <div class="recommendations-bulk__search">
+                  <label for="recommendationsBulkSearch" class="visually-hidden">Пошук за ПІБ або ЄДРПВР</label>
+                  <input
+                    type="search"
+                    class="form-control"
+                    placeholder="Пошук за ПІБ або ЄДРПВР"
+                    aria-label="Пошук за ПІБ або ЄДРПВР"
+                    autocomplete="off"
+                    id="recommendationsBulkSearch"
+                    data-recommendations-bulk-search
+                  >
+                  <button type="button" class="recommendations-bulk__search-clear" data-recommendations-bulk-clear aria-label="Очистити пошук" hidden>
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </div>
+                <div class="recommendations-bulk__info" data-recommendations-bulk-info hidden>
+                  <span data-recommendations-bulk-count>Обрано 0</span>
+                </div>
+              </div>
+            </div>
+            {% if form.persons.errors %}
+              <div class="invalid-feedback d-block mb-3">
+                {% for error in form.persons.errors %}
+                  <div>{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endif %}
+            <div class="recommendations-bulk__list" data-recommendations-bulk-list>
+              {% for checkbox in form.persons %}
+                {% with checkbox_value=checkbox.data|get_item:"value" %}
+                  <div
+                    class="recommendations-bulk__person"
+                    data-recommendations-bulk-person="{{ checkbox.choice_label|lower }} {{ persons_edrpvr|get_item:checkbox_value|default:'' }}"
+                    data-person-id="{{ checkbox_value }}"
+                    data-person-category="{{ persons_categories|get_item:checkbox_value|default:'' }}"
+                    data-person-edrpvr="{{ persons_edrpvr|get_item:checkbox_value|default:'' }}"
+                  >
+                    <div class="d-flex align-items-start flex-grow-1 gap-3">
+                      {{ checkbox.tag }}
+                      <div class="recommendations-bulk__person-info">
+                        <label class="form-check-label recommendations-bulk__person-name" for="{{ checkbox.id_for_label }}">
+                          {{ checkbox.choice_label }}
+                        </label>
+                        <span class="recommendations-bulk__person-meta">
+                          Номер у ЄДРПВР: {{ persons_edrpvr|get_item:checkbox_value|default:"—" }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="recommendations-bulk__remove">
+                      <button type="button" class="btn btn-link btn-sm recommendations-bulk__remove-btn" data-recommendations-bulk-remove data-checkbox-id="{{ checkbox.id_for_label }}" title="Вилучити із вибору" hidden>
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        <span class="visually-hidden">Вилучити</span>
+                      </button>
+                    </div>
+                  </div>
+                {% endwith %}
+              {% empty %}
+                <div class="recommendations-bulk__empty">
+                  Немає жодної особи для вибору.
+                </div>
+              {% endfor %}
+              <div class="recommendations-bulk__empty" data-recommendations-bulk-empty hidden>
+                За вказаним фільтром осіб не знайдено.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="recommendations-bulk__footer mt-4">
+          <button type="button" class="btn btn-danger" data-recommendations-bulk-clear-selection>
+            <i class="bi bi-x-circle"></i>
+            Очистити вибір
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-stars"></i>
+            Отримати рекомендації
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+{% block extra_js %}
+  {{ block.super }}
+  <script>
+    (() => {
+      const searchInput = document.querySelector("[data-recommendations-bulk-search]");
+      const clearButton = document.querySelector("[data-recommendations-bulk-clear]");
+      const items = Array.from(document.querySelectorAll("[data-recommendations-bulk-person]"));
+      const infoBlock = document.querySelector("[data-recommendations-bulk-info]");
+      const countLabel = document.querySelector("[data-recommendations-bulk-count]");
+      const emptyState = document.querySelector("[data-recommendations-bulk-empty]");
+      const selectionInputs = Array.from(
+        document.querySelectorAll('input[type="checkbox"][data-rules-bulk-checkbox]')
+      );
+      const categoryContainers = Array.from(document.querySelectorAll("[data-recommendations-bulk-category]"));
+      const clearSelectionBtn = document.querySelector("[data-recommendations-bulk-clear-selection]");
+      const CATEGORY_VALUE_MAP = {
+        conscripts: "призовник",
+        liable: "військовозобʼязаний",
+        reservists: "резервіст",
+      };
+      const hasActiveCategories = () =>
+        categoryContainers.some((container) => {
+          const checkbox = container.querySelector('input[type="checkbox"]');
+          return checkbox && checkbox.checked;
+        });
+
+      const toggleClear = (visible) => {
+        if (!clearButton) {
+          return;
+        }
+        clearButton.hidden = !visible;
+      };
+
+      const normalizeDigits = (value) => value.replace(/\D+/g, "");
+
+      const updateFilter = () => {
+        if (!searchInput) {
+          return;
+        }
+        const term = searchInput.value.trim().toLowerCase();
+        toggleClear(Boolean(term));
+        const digitTerm = normalizeDigits(term);
+        let visibleCount = 0;
+        items.forEach((item) => {
+          const base = (item.getAttribute("data-recommendations-bulk-person") || "").toLowerCase();
+          const edrpvr = (item.getAttribute("data-person-edrpvr") || "").toLowerCase();
+          const matchesDigits = digitTerm ? normalizeDigits(edrpvr).includes(digitTerm) : false;
+          const matches = !term || base.includes(term) || edrpvr.includes(term) || matchesDigits;
+          item.hidden = !matches;
+          if (matches) {
+            visibleCount += 1;
+          }
+        });
+        if (emptyState) {
+          emptyState.hidden = visibleCount > 0;
+        }
+      };
+
+      const syncAllRows = () => {
+        selectionInputs.forEach((input) => {
+          const row = input.closest("[data-recommendations-bulk-person]");
+          if (!row) {
+            return;
+          }
+          const removeBtn = row.querySelector("[data-recommendations-bulk-remove]");
+          if (removeBtn) {
+            removeBtn.hidden = !input.checked;
+          }
+        });
+      };
+
+      const updateCount = () => {
+        if (!infoBlock || !countLabel) {
+          return;
+        }
+        const checked = selectionInputs.filter((input) => input.checked);
+        const total = checked.length;
+        if (total > 0) {
+          infoBlock.hidden = false;
+          countLabel.textContent = `Обрано ${total}`;
+        } else {
+          infoBlock.hidden = true;
+          countLabel.textContent = "Обрано 0";
+        }
+        syncAllRows();
+      };
+
+      const applyCategorySelection = () => {
+        if (!categoryContainers.length) {
+          updateCount();
+          return;
+        }
+        const activeCategories = new Set();
+        let selectAll = false;
+        categoryContainers.forEach((container) => {
+          const input = container.querySelector('input[type="checkbox"]');
+          if (!input) {
+            return;
+          }
+          const value = container.getAttribute("data-recommendations-bulk-category") || "";
+          if (!input.checked || !value) {
+            return;
+          }
+          if (value === "all") {
+            selectAll = true;
+          } else if (Object.prototype.hasOwnProperty.call(CATEGORY_VALUE_MAP, value)) {
+            activeCategories.add(CATEGORY_VALUE_MAP[value]);
+          }
+        });
+
+        if (selectAll) {
+          selectionInputs.forEach((input) => {
+            if (!input.checked) {
+              input.checked = true;
+            }
+          });
+        } else if (activeCategories.size > 0) {
+          selectionInputs.forEach((input) => {
+            const personRow = input.closest("[data-recommendations-bulk-person]");
+            const category = personRow ? personRow.getAttribute("data-person-category") || "" : "";
+            input.checked = activeCategories.has(category);
+          });
+        }
+        updateCount();
+      };
+
+      items.forEach((item) => {
+        const removeBtn = item.querySelector("[data-recommendations-bulk-remove]");
+        const checkboxId = removeBtn ? removeBtn.getAttribute("data-checkbox-id") : null;
+        if (removeBtn && checkboxId) {
+          removeBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            const checkbox = document.getElementById(checkboxId);
+            if (checkbox) {
+              checkbox.checked = false;
+              checkbox.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+          });
+        }
+      });
+
+      selectionInputs.forEach((input) => {
+        input.addEventListener("change", updateCount);
+      });
+
+      categoryContainers.forEach((container) => {
+        const input = container.querySelector('input[type="checkbox"]');
+        if (!input) {
+          return;
+        }
+        input.addEventListener("change", () => {
+          const value = container.getAttribute("data-recommendations-bulk-category") || "";
+          if (value === "all" && !input.checked) {
+            const otherActive = categoryContainers.some((other) => {
+              if (other === container) {
+                return false;
+              }
+              const otherInput = other.querySelector('input[type="checkbox"]');
+              return otherInput && otherInput.checked;
+            });
+            if (!otherActive) {
+              updateCount();
+              return;
+            }
+          }
+          applyCategorySelection();
+        });
+      });
+
+      if (searchInput) {
+        searchInput.addEventListener("input", () => {
+          updateFilter();
+        });
+      }
+      if (clearButton && searchInput) {
+        clearButton.addEventListener("click", () => {
+          searchInput.value = "";
+          updateFilter();
+          searchInput.focus();
+        });
+      }
+
+      if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          selectionInputs.forEach((input) => {
+            if (input.checked) {
+              input.checked = false;
+            }
+          });
+          categoryContainers.forEach((container) => {
+            const checkbox = container.querySelector('input[type="checkbox"]');
+            if (checkbox && checkbox.checked) {
+              checkbox.checked = false;
+            }
+          });
+          updateCount();
+        });
+      }
+
+      updateFilter();
+      syncAllRows();
+      if (hasActiveCategories()) {
+        applyCategorySelection();
+      } else {
+        updateCount();
+      }
+    })();
+  </script>
+{% endblock %}

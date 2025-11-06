@@ -4,23 +4,34 @@ import html
 from functools import lru_cache
 from pathlib import Path
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import PasswordChangeView
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.shortcuts import render
+from django.forms.models import model_to_dict
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.text import slugify
-from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
+from django.views import View
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    FormView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 
-from .forms import AccountPasswordChangeForm, PersonForm
+from .forms import AccountPasswordChangeForm, PersonForm, RulesAcknowledgementSelectionForm
 from .models import Person
 from .recommendations import PersonRecommendationEngine, PersonData
 from .tck_reference_data import count_tck_entries, get_tck_reference_data
@@ -253,6 +264,126 @@ def _build_rules_context(person: Person) -> Dict[str, Any]:
     }
 
 
+def _build_rules_bulk_context(persons: Sequence[Person]) -> Dict[str, Any]:
+    persons_list = list(persons)
+    acknowledgement_note = "З Правилами військового обліку ознайомлені"
+    if len(persons_list) == 1:
+        single_context = _build_rules_context(persons_list[0])
+        acknowledgement_note = single_context["acknowledgement_note"]
+    acknowledged_on = timezone.localdate()
+    acknowledgement_entries = [
+        {
+            "date": acknowledged_on,
+            "first_name": person.first_name.strip(),
+            "last_name_upper": person.last_name.strip().upper(),
+            "full_name": " ".join(
+                value
+                for value in (
+                    person.first_name.strip(),
+                    person.last_name.strip().upper(),
+                )
+                if value
+            ),
+        }
+        for person in persons_list
+    ]
+    return {
+        "rules_html": mark_safe(_load_rules_html()),
+        "acknowledged_on": acknowledged_on,
+        "acknowledgement_note": acknowledgement_note,
+        "acknowledgement_entries": acknowledgement_entries,
+        "selected_count": len(persons_list),
+        "primary_color": PRIMARY_COLOR,
+        "selected_persons": persons_list,
+        "selected_person_ids": [person.pk for person in persons_list],
+    }
+
+
+def _serialize_person_for_recommendations(person: Person) -> Dict[str, Any]:
+    payload = model_to_dict(person, fields=PersonForm.Meta.fields)  # type: ignore[arg-type]
+    return {key: value for key, value in payload.items() if value not in (None, "", [])}
+
+
+def _build_person_recommendations(person: Person) -> List[str]:
+    engine = PersonRecommendationEngine()
+    engine.reset()
+    engine.declare(PersonData(**_serialize_person_for_recommendations(person)))
+    engine.run()
+    recommendations = engine.get_recommendations()
+    if not recommendations:
+        return ["Додаткові рекомендації відсутні на основі введених даних."]
+    return list(recommendations)
+
+
+def _format_recommendation_categories(categories: Iterable[str]) -> List[str]:
+    order = [
+        ("conscripts", "призовників"),
+        ("liable", "військовозобовʼязаних"),
+        ("reservists", "резервістів"),
+    ]
+    categories_set = {value for value in categories if value}
+    return [label for key, label in order if key in categories_set]
+
+
+def _build_recommendations_selection_summary(selected_count: int, categories: Sequence[str]) -> str:
+    categories = list(categories or [])
+    if "all" in categories:
+        return "Для формування вибрано усі записи."
+
+    category_labels = _format_recommendation_categories(categories)
+    if category_labels:
+        joined = ", ".join(category_labels)
+        return f"Для формування вибрано записи всіх {joined}."
+
+    noun = "запис"
+    if selected_count != 1:
+        noun = "записів"
+    return f"Для формування вибрано {selected_count} {noun}."
+
+
+def _build_recommendations_bulk_context(
+    persons: Sequence[Person],
+    *,
+    selection_summary: Optional[str] = None,
+    selection_categories: Optional[Sequence[str]] = None,
+) -> Dict[str, Any]:
+    persons_list = list(persons)
+    entries = []
+    for person in persons_list:
+        name_parts = [
+            part.strip()
+            for part in (
+                person.last_name,
+                person.first_name,
+                person.middle_name or "",
+            )
+            if part
+        ]
+        full_name = " ".join(name_parts).strip() or str(person).strip() or "—"
+        entries.append(
+            {
+                "person": person,
+                "full_name": full_name,
+                "edrpvr_number": person.edrpvr_number or "—",
+                "recommendations": _build_person_recommendations(person),
+            }
+        )
+    return {
+        "recommendations_entries": entries,
+        "selected_count": len(persons_list),
+        "selected_persons": persons_list,
+        "selected_person_ids": [person.pk for person in persons_list],
+        "primary_color": PRIMARY_COLOR,
+        "generated_on": timezone.localdate(),
+        "generated_at": timezone.localtime(),
+        "selection_summary": selection_summary or _build_recommendations_selection_summary(
+            len(persons_list),
+            selection_categories or [],
+        ),
+        "selection_categories": list(selection_categories or []),
+    }
+
+
 class PersonRulesView(LoginRequiredMixin, SidebarContextMixin, DetailView):
     model = Person
     template_name = "persons/person_rules.html"
@@ -263,6 +394,36 @@ class PersonRulesView(LoginRequiredMixin, SidebarContextMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context.update(_build_rules_context(self.object))
         return context
+
+
+class PersonRulesBulkView(LoginRequiredMixin, SidebarContextMixin, FormView):
+    template_name = "persons/person_rules_bulk_select.html"
+    form_class = RulesAcknowledgementSelectionForm
+    sidebar_active = "rules_bulk"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["persons_total"] = Person.objects.count()
+        queryset = context["form"].fields["persons"].queryset if "form" in context else Person.objects.all()
+        context["persons_edrpvr"] = {
+            str(person.pk): (person.edrpvr_number or "—")
+            for person in queryset
+        }
+        context["persons_categories"] = {
+            str(person.pk): person.account_category
+            for person in queryset
+        }
+        return context
+
+    def form_valid(self, form: RulesAcknowledgementSelectionForm) -> HttpResponse:
+        selected_persons = form.get_selected_persons()
+        if not selected_persons:
+            form.add_error(None, "За вибраними умовами осіб не знайдено.")
+            return self.form_invalid(form)
+        context = _build_rules_bulk_context(selected_persons)
+        context["sidebar_active"] = self.sidebar_active
+        context["selection_form"] = form
+        return render(self.request, "persons/person_rules_bulk.html", context)
 
 
 class PersonRulesPdfView(LoginRequiredMixin, DetailView):
@@ -285,6 +446,133 @@ class PersonRulesPdfView(LoginRequiredMixin, DetailView):
             base_url=request.build_absolute_uri("/"),
         ).write_pdf()
         filename = slugify(f"pravila-{self.object.last_name}-{self.object.first_name}") or "pravila"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}.pdf"'
+        return response
+
+
+class PersonRulesBulkPdfView(LoginRequiredMixin, View):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        person_ids = request.POST.getlist("person_ids")
+        if not person_ids:
+            messages.error(request, "Не вдалося сформувати PDF — не передано жодного запису.")
+            return HttpResponseRedirect(reverse("persons:person_rules_bulk"))
+
+        try:
+            numeric_ids = [int(pk) for pk in person_ids]
+        except ValueError:
+            messages.error(request, "Передані некоректні ідентифікатори записів.")
+            return HttpResponseRedirect(reverse("persons:person_rules_bulk"))
+
+        ordering = Person._meta.ordering or ["last_name", "first_name", "middle_name"]
+        persons = list(Person.objects.filter(pk__in=numeric_ids).order_by(*ordering))
+        if not persons:
+            messages.error(request, "За вибраними умовами осіб не знайдено.")
+            return HttpResponseRedirect(reverse("persons:person_rules_bulk"))
+
+        html_renderer = _get_weasyprint_html()
+        if html_renderer is None:
+            return HttpResponse(
+                "PDF generation is unavailable. Please install WeasyPrint.",
+                status=503,
+            )
+
+        context = _build_rules_bulk_context(persons)
+        context["request"] = request
+        html = render_to_string("persons/person_rules_bulk_pdf.html", context)
+        pdf_bytes = html_renderer(
+            string=html,
+            base_url=request.build_absolute_uri("/"),
+        ).write_pdf()
+        filename = slugify("pravila-bagatoh-osib") or "pravila"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{filename}.pdf"'
+        return response
+
+
+class PersonRecommendationsBulkView(LoginRequiredMixin, SidebarContextMixin, FormView):
+    template_name = "persons/person_recommendations_select.html"
+    form_class = RulesAcknowledgementSelectionForm
+    sidebar_active = "recommendations"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["persons_total"] = Person.objects.count()
+        queryset = context["form"].fields["persons"].queryset if "form" in context else Person.objects.all()
+        context["persons_edrpvr"] = {
+            str(person.pk): (person.edrpvr_number or "—")
+            for person in queryset
+        }
+        context["persons_categories"] = {
+            str(person.pk): person.account_category
+            for person in queryset
+        }
+        return context
+
+    def form_valid(self, form: RulesAcknowledgementSelectionForm) -> HttpResponse:
+        selected_persons = form.get_selected_persons()
+        if not selected_persons:
+            form.add_error(None, "За вибраними умовами осіб не знайдено.")
+            return self.form_invalid(form)
+        selected_categories = form.cleaned_data.get("bulk_options", [])
+        selection_summary = _build_recommendations_selection_summary(
+            len(selected_persons),
+            selected_categories,
+        )
+        context = _build_recommendations_bulk_context(
+            selected_persons,
+            selection_summary=selection_summary,
+            selection_categories=selected_categories,
+        )
+        context["sidebar_active"] = self.sidebar_active
+        context["selection_form"] = form
+        context["selected_categories"] = list(selected_categories or [])
+        return render(self.request, "persons/person_recommendations_bulk.html", context)
+
+
+class PersonRecommendationsBulkPdfView(LoginRequiredMixin, View):
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        person_ids = request.POST.getlist("person_ids")
+        if not person_ids:
+            messages.error(request, "Не вдалося сформувати PDF — не передано жодного запису.")
+            return HttpResponseRedirect(reverse("persons:person_recommendations_bulk"))
+
+        try:
+            numeric_ids = [int(pk) for pk in person_ids]
+        except ValueError:
+            messages.error(request, "Передані некоректні ідентифікатори записів.")
+            return HttpResponseRedirect(reverse("persons:person_recommendations_bulk"))
+
+        ordering = Person._meta.ordering or ["last_name", "first_name", "middle_name"]
+        persons = list(Person.objects.filter(pk__in=numeric_ids).order_by(*ordering))
+        if not persons:
+            messages.error(request, "За вибраними умовами осіб не знайдено.")
+            return HttpResponseRedirect(reverse("persons:person_recommendations_bulk"))
+
+        html_renderer = _get_weasyprint_html()
+        if html_renderer is None:
+            return HttpResponse(
+                "PDF generation is unavailable. Please install WeasyPrint.",
+                status=503,
+            )
+
+        posted_categories = request.POST.getlist("selected_categories")
+        posted_summary = request.POST.get("selection_summary") or None
+        if not posted_summary:
+            posted_summary = _build_recommendations_selection_summary(len(persons), posted_categories)
+
+        context = _build_recommendations_bulk_context(
+            persons,
+            selection_summary=posted_summary,
+            selection_categories=posted_categories,
+        )
+        context["request"] = request
+        html = render_to_string("persons/person_recommendations_bulk_pdf.html", context)
+        pdf_bytes = html_renderer(
+            string=html,
+            base_url=request.build_absolute_uri("/"),
+        ).write_pdf()
+        filename = slugify("rekomendatsii-bagatoh-osib") or "rekomendatsii"
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}.pdf"'
         return response

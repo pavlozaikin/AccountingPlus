@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: "e-Ukraine";
+        font-style: normal;
+        font-weight: 400;
+        src: url("https://fonts.cdnfonts.com/s/19780/e-Ukraine-Regular.woff") format("woff");
+      }
+
+      @font-face {
+        font-family: "e-Ukraine";
+        font-style: normal;
+        font-weight: 600;
+        src: url("https://fonts.cdnfonts.com/s/19780/e-Ukraine-Medium.woff") format("woff");
+      }
+
+      @font-face {
+        font-family: "e-Ukraine Head";
+        font-style: normal;
+        font-weight: 700;
+        src: url("https://fonts.cdnfonts.com/s/19780/e-UkraineHead-Bold.woff") format("woff");
+      }
+
+      @page {
+        size: A4;
+        margin: 20mm 10mm 20mm 30mm;
+        background: #ffffff;
+        @top-left {
+          content: none;
+        }
+        @top-center {
+          content: none;
+        }
+        @top-right {
+          content: none;
+        }
+        @bottom-left {
+          content: none;
+        }
+        @bottom-center {
+          content: counter(page);
+          font-family: "e-Ukraine Head", sans-serif;
+          font-size: 10pt;
+        }
+        @bottom-right {
+          content: none;
+        }
+      }
+
+      html {
+        background-color: #ffffff;
+      }
+
+      body {
+        font-family: "e-Ukraine", "Arial", sans-serif;
+        font-size: 12pt;
+        line-height: 1.5;
+        color: #141414;
+        margin: 0;
+      }
+
+      .pdf-wrapper {
+        display: block;
+      }
+
+      .pdf-header {
+        text-align: center;
+        margin-bottom: 16pt;
+      }
+
+      .pdf-brand {
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        font-weight: 700;
+        font-size: 16pt;
+        margin-bottom: 8pt;
+        text-align: left;
+      }
+
+      .pdf-brand__plus {
+        color: {{ primary_color }};
+      }
+
+      .pdf-title {
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        font-weight: 700;
+        font-size: 20pt;
+        margin: 0;
+        letter-spacing: 0.02em;
+        margin-bottom: 4pt;
+      }
+
+      .pdf-subtitle {
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        font-weight: 700;
+        font-size: 12pt;
+        margin: 0;
+        margin-bottom: 4pt;
+      }
+
+      .pdf-meta {
+        margin: 0;
+        color: #6c757d;
+        font-size: 11pt;
+        margin-bottom: 8pt;
+      }
+
+      .pdf-summary {
+        margin: 0 0 16pt;
+        font-size: 11pt;
+        color: #444;
+        text-align: left;
+      }
+
+      .pdf-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12pt;
+        padding: 14pt 18pt;
+        page-break-inside: avoid;
+        margin-bottom: 16pt;
+      }
+
+      .pdf-card:last-of-type {
+        margin-bottom: 0;
+      }
+
+      .pdf-card__title {
+        margin: 0;
+        font-family: "e-Ukraine Head", "Arial", sans-serif;
+        font-weight: 700;
+        font-size: 14pt;
+      }
+
+      .pdf-card__subtitle {
+        margin: 3pt 0 10pt;
+        font-size: 11pt;
+        color: #5b636a;
+      }
+
+      .pdf-card__list {
+        margin: 0;
+        padding-left: 16pt;
+        display: flex;
+        flex-direction: column;
+        gap: 6pt;
+      }
+
+      .pdf-card__list li {
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pdf-wrapper">
+      <div class="pdf-brand">Облік<span class="pdf-brand__plus">+</span></div>
+      <section class="pdf-header">
+        <h1 class="pdf-title">Рекомендації</h1>
+        <p class="pdf-subtitle">з військового обліку</p>
+        <p class="pdf-meta">{{ generated_at|date:"d.m.Y H:i:s" }}</p>
+      </section>
+      <p class="pdf-summary">{{ selection_summary }}</p>
+      {% for entry in recommendations_entries %}
+        <section class="pdf-card">
+          <header>
+            <h2 class="pdf-card__title">{{ entry.full_name }}</h2>
+            <p class="pdf-card__subtitle">Номер у ЄДРПВР: {{ entry.edrpvr_number }}</p>
+          </header>
+          <ul class="pdf-card__list">
+            {% for recommendation in entry.recommendations %}
+              <li>{{ recommendation }}</li>
+            {% endfor %}
+          </ul>
+        </section>
+      {% empty %}
+        <p>Рекомендації відсутні.</p>
+      {% endfor %}
+    </div>
+  </body>
+</html>

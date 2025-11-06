@@ -92,14 +92,21 @@
 
   <hr class="my-4" />
   <h3 class="h5 mt-2 mb-3">Військово-обліковий документ та ЄДРПВР</h3>
-  {% include 'includes/form_field.html' with field=form.tcksp wrapper_class='mb-3' %}
-  {% include 'includes/form_field.html' with field=form.edrpvr_number wrapper_class='mb-3' %}
-  {% include 'includes/form_field.html' with field=form.doc_type wrapper_class='mb-3' %}
-  {% include 'includes/form_field.html' with field=form.doc_series_number wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.tcksp wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.edrpvr_number wrapper_class='col-md-6 mb-3' %}
+  </div>
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.doc_type wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.doc_series_number wrapper_class='col-md-6 mb-3' %}
+  </div>
 
   <hr class="my-4" />
   <h3 class="h5 mt-2 mb-3">Паспорт громадянина України</h3>
-  {% include 'includes/form_field.html' with field=form.passport_series_number wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.passport_type wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.passport_series_number wrapper_class='col-md-6 mb-3' %}
+  </div>
   <div class="row g-3">
     {% include 'includes/form_field.html' with field=form.passport_issued_by wrapper_class='col-md-6 mb-3' %}
     {% include 'includes/form_field.html' with field=form.passport_issued_date wrapper_class='col-md-6 mb-3' %}
@@ -108,8 +115,10 @@
   <hr class="my-4" />
   <h3 class="h5 mt-2 mb-3">Відстрочка та бронювання</h3>
   <h4 class="h6 mt-2 mb-3">Відстрочка</h4>
-  {% include 'includes/form_field.html' with field=form.deferral_until wrapper_class='mb-3' %}
-  {% include 'includes/form_field.html' with field=form.deferral_reason wrapper_class='mb-3' %}
+  <div class="row g-3">
+    {% include 'includes/form_field.html' with field=form.deferral_until wrapper_class='col-md-6 mb-3' %}
+    {% include 'includes/form_field.html' with field=form.deferral_reason wrapper_class='col-md-6 mb-3' %}
+  </div>
   <h4 class="h6 mt-4 mb-3">Бронювання</h4>
   {% include 'includes/form_field.html' with field=form.booking_until wrapper_class='mb-3' %}
 
@@ -146,4 +155,6 @@
 {% block extra_js %}
   {{ block.super }}
   <script src="{% static 'persons/js/tck_autocomplete.js' %}"></script>
+  <script src="{% static 'persons/js/doc_type_controls.js' %}"></script>
+  <script src="{% static 'persons/js/passport_controls.js' %}"></script>
 {% endblock %}

@@ -14,6 +14,12 @@ class Person(models.Model):
         ("військовозобовʼязаний", "військовозобовʼязаний"),
         ("резервіст", "резервіст"),
     ]
+    PASSPORT_TYPE_BOOK = "Книжечка"
+    PASSPORT_TYPE_ID_CARD = "ID-картка"
+    PASSPORT_TYPE_CHOICES = [
+        (PASSPORT_TYPE_BOOK, "Паспорт-книжечка"),
+        (PASSPORT_TYPE_ID_CARD, "ID-картка"),
+    ]
 
     last_name = models.CharField("Прізвище", max_length=150)
     first_name = models.CharField("Імʼя", max_length=150)
@@ -60,6 +66,12 @@ class Person(models.Model):
     doc_type = models.CharField("Тип", max_length=100, blank=True)
     doc_series_number = models.CharField("(Серія) та номер", max_length=100, blank=True)
 
+    passport_type = models.CharField(
+        "Тип паспорта",
+        max_length=20,
+        choices=PASSPORT_TYPE_CHOICES,
+        blank=True,
+    )
     passport_series_number = models.CharField(
         "(Серія) та номер паспорта",
         max_length=100,
